@@ -10,7 +10,7 @@ import type {
 } from '@organaizer/types';
 
 const BASE_URL =
-  (import.meta.env['VITE_API_BASE_URL'] as string | undefined) ??
+  (import.meta.env['VITE_API_BASE_URL'] as string | undefined) ||
   'http://localhost:3000/v1';
 
 const TOKEN_KEY = 'organaizer_session_token';

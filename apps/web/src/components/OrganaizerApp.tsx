@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import {
   Camera, CheckCircle2, AlertTriangle, RefreshCw, ArrowRight, ShieldCheck,
   Sparkles, ShieldAlert, Archive, Briefcase, Palette, Check, Image as ImageIcon
@@ -48,6 +48,14 @@ export default function OrganaizerApp() {
 
   const displayImage = uploadedImage || DEFAULT_IMAGE;
 
+  useEffect(() => {
+    return () => {
+      if (uploadedImage?.startsWith('blob:')) {
+        URL.revokeObjectURL(uploadedImage);
+      }
+    };
+  }, [uploadedImage]);
+
   // The zones/checklist from the current analysis (or empty while no result yet)
   const zones = analysis?.zones ?? [];
   const checklist = analysis?.checklist ?? [];
@@ -56,7 +64,12 @@ export default function OrganaizerApp() {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setUploadedFile(file);
-      setUploadedImage(URL.createObjectURL(file));
+      setUploadedImage((previous) => {
+        if (previous?.startsWith('blob:')) {
+          URL.revokeObjectURL(previous);
+        }
+        return URL.createObjectURL(file);
+      });
     }
   };
 
@@ -244,7 +257,13 @@ export default function OrganaizerApp() {
                   </button>
                   {uploadedImage && (
                     <button
-                      onClick={() => { setUploadedImage(null); setUploadedFile(null); }}
+                      onClick={() => {
+                        if (uploadedImage?.startsWith('blob:')) {
+                          URL.revokeObjectURL(uploadedImage);
+                        }
+                        setUploadedImage(null);
+                        setUploadedFile(null);
+                      }}
                       className="text-primary-soft text-sm font-medium underline"
                     >
                       Use sample
