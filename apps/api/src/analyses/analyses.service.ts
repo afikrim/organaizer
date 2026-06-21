@@ -31,7 +31,7 @@ export class AnalysesService {
       followUps: [],
     };
 
-    await this.images.save(imageKey, image, imageUrl);
+    await this.images.save(imageKey, image, imageUrl, sessionId);
     await this.analyses.save({ sessionId, imageKey, analysis });
 
     return { ...analysis, imageUrl };
