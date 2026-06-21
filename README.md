@@ -49,6 +49,13 @@ pnpm clean
 
 Copy `.env.example` to `.env` and fill in values before running.
 
+The API defaults to in-memory persistence. Prisma/Postgres schema validation is available with:
+
+```bash
+pnpm --filter @organaizer/api prisma:validate
+pnpm --filter @organaizer/api prisma:generate
+```
+
 ### API quick-start
 
 ```bash

@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum GoalType {
+  cleaner
+  safer
+  storage
+  work
+  aesthetics
+}
+
+enum AnalysisStatus {
+  complete
+  failed
+}
+
+model Session {
+  id        String     @id @default(uuid()) @db.Uuid
+  tokenHash String     @unique @map("token_hash")
+  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  expiresAt DateTime?  @map("expires_at") @db.Timestamptz(6)
+  analyses  Analysis[]
+
+  @@map("sessions")
+}
+
+model Analysis {
+  id                String           @id @default(uuid()) @db.Uuid
+  sessionId         String           @map("session_id") @db.Uuid
+  goal              GoalType
+  status            AnalysisStatus   @default(complete)
+  summary           String
+  model             String?
+  zones             Json
+  checklist         Json
+  imageKey          String           @map("image_key")
+  imageOriginalName String           @map("image_original_name")
+  imageMimeType     String           @map("image_mime_type")
+  imageSizeBytes    Int              @map("image_size_bytes")
+  createdAt         DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  session           Session          @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  followUps         FollowUpTurn[]
+
+  @@index([sessionId, createdAt])
+  @@map("analyses")
+}
+
+model FollowUpTurn {
+  id         String   @id @default(uuid()) @db.Uuid
+  analysisId String   @map("analysis_id") @db.Uuid
+  question   String
+  answer     String
+  safetyNote String?  @map("safety_note")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  analysis   Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+
+  @@index([analysisId, createdAt])
+  @@map("follow_up_turns")
+}
