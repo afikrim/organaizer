@@ -1,8 +1,9 @@
 import type { Zone, Goal, Priority } from '@organaizer/types';
+import heroImage from './hero.png';
 
 export const mockZones: Zone[] = [
   {
-    id: 'm1',
+    id: 'a1b2c3d4-e5f6-4a7b-8c9d-0123456789ab',
     number: 1,
     label: 'Cluttered Desk Area',
     priority: 'high',
@@ -12,7 +13,7 @@ export const mockZones: Zone[] = [
     suggestion: 'Clear loose papers into a folder and route cables under the desk.'
   },
   {
-    id: 'm2',
+    id: 'b2c3d4e5-f6a7-4b8c-9d0e-123456789abc',
     number: 2,
     label: 'Floor Trip Hazard',
     priority: 'medium',
@@ -22,7 +23,7 @@ export const mockZones: Zone[] = [
     suggestion: 'Route them along the baseboard or use a cable management box.'
   },
   {
-    id: 'm3',
+    id: 'c3d4e5f6-a7b8-4c9d-0e1f-23456789abcd',
     number: 3,
     label: 'Overhead Shelf Risk',
     priority: 'low',
@@ -54,4 +55,4 @@ export const PRIORITY_COLORS: Record<Priority, { bg: string, text: string, borde
   low: { bg: 'bg-primary-subdued/30', text: 'text-primary-deep', border: 'border-primary-subdued' },
 };
 
-export const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1593642632823-8f785ba67e45?auto=format&fit=crop&q=80&w=800';
+export const DEFAULT_IMAGE = heroImage;

@@ -21,6 +21,8 @@ const GoalIcons: Record<Goal, React.ReactNode> = {
   aesthetics: <Palette className="w-5 h-5" />
 };
 
+const PRIORITY_SORT_ORDER: Record<string, number> = { high: 3, medium: 2, low: 1 };
+
 export default function OrganaizerApp() {
   const [appState, setAppState] = useState<AppState>('upload');
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
@@ -155,7 +157,7 @@ export default function OrganaizerApp() {
                   id="photo-upload"
                 />
                 
-                <div className="relative rounded-2xl overflow-hidden aspect-[4/3] border border-hairline group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                <div className="relative rounded-2xl overflow-hidden aspect-[4/3] border border-hairline cursor-pointer" onClick={() => fileInputRef.current?.click()}>
                   <img src={uploadedImage || DEFAULT_IMAGE} alt="Space to analyze" className="w-full h-full object-cover" />
                   
                   {!uploadedImage && (
@@ -163,23 +165,24 @@ export default function OrganaizerApp() {
                       Sample photo
                     </div>
                   )}
+                </div>
 
-                  <div className="absolute inset-0 bg-ink/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3">
+                {/* Persistent Mobile-First Upload Controls */}
+                <div className="flex items-center justify-center gap-4 mt-1">
+                  <button 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="px-4 py-2 bg-canvas-soft border border-hairline text-ink rounded-full font-medium text-sm flex items-center gap-2 shadow-sm hover:bg-canvas transition-colors"
+                  >
+                    <ImageIcon className="w-4 h-4" /> Replace Photo
+                  </button>
+                  {uploadedImage && (
                     <button 
-                      onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
-                      className="px-4 py-2 bg-white text-ink rounded-full font-medium text-sm flex items-center gap-2 shadow-sm"
+                      onClick={() => setUploadedImage(null)}
+                      className="text-primary-soft text-sm font-medium underline"
                     >
-                      <ImageIcon className="w-4 h-4" /> Replace Photo
+                      Use sample
                     </button>
-                    {uploadedImage && (
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); setUploadedImage(null); }}
-                        className="text-white text-xs underline"
-                      >
-                        Use sample instead
-                      </button>
-                    )}
-                  </div>
+                  )}
                 </div>
               </div>
 
@@ -292,6 +295,31 @@ export default function OrganaizerApp() {
                   </div>
                 )}
 
+                {/* Suggestion Cards (All Zones) */}
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg border-b border-hairline pb-2">All Suggestions</h3>
+                  <div className="flex flex-col gap-3">
+                    {[...mockZones].sort((a, b) => PRIORITY_SORT_ORDER[b.priority] - PRIORITY_SORT_ORDER[a.priority]).map(z => {
+                      const pColor = PRIORITY_COLORS[z.priority];
+                      return (
+                        <button 
+                          key={z.id}
+                          onClick={() => setActiveZoneId(z.id)}
+                          className="w-full text-left p-4 rounded-xl border border-hairline bg-canvas hover:border-primary/40 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-medium text-ink">{z.number}. {z.label}</h4>
+                            <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full uppercase border", pColor.bg, pColor.text, pColor.border)}>
+                              {z.priority}
+                            </span>
+                          </div>
+                          <p className="text-sm text-ink-secondary">{z.suggestion}</p>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
                 {/* Checklist Section */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between border-b border-hairline pb-2">
@@ -319,31 +347,6 @@ export default function OrganaizerApp() {
                           <span className={cn("text-sm font-medium", isDone ? "line-through text-ink-mute" : "text-ink")}>{task.text}</span>
                         </button>
                       );
-                    })}
-                  </div>
-                </div>
-
-                {/* Suggestion Cards (All Zones) */}
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-lg border-b border-hairline pb-2">All Suggestions</h3>
-                  <div className="flex flex-col gap-3">
-                    {mockZones.map(z => {
-                      const pColor = PRIORITY_COLORS[z.priority];
-                      return (
-                        <button 
-                          key={z.id}
-                          onClick={() => setActiveZoneId(z.id)}
-                          className="w-full text-left p-4 rounded-xl border border-hairline bg-canvas hover:border-primary/40 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-medium text-ink">{z.number}. {z.label}</h4>
-                            <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full uppercase border", pColor.bg, pColor.text, pColor.border)}>
-                              {z.priority}
-                            </span>
-                          </div>
-                          <p className="text-sm text-ink-secondary">{z.suggestion}</p>
-                        </button>
-                      )
                     })}
                   </div>
                 </div>
@@ -414,7 +417,7 @@ export default function OrganaizerApp() {
                 className="flex items-center gap-2 px-6 py-3 rounded-full bg-ink text-white font-medium hover:bg-ink-secondary transition-colors"
               >
                 <RefreshCw className="w-4 h-4" />
-                Try Again
+                Try again
               </button>
             </div>
           )}
