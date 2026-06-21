@@ -56,6 +56,22 @@ pnpm --filter @organaizer/api prisma:validate
 pnpm --filter @organaizer/api prisma:generate
 ```
 
+### Opt-in Prisma persistence driver (milestone 6c)
+
+Set `PERSISTENCE_DRIVER=prisma` (and `DATABASE_URL`) to switch sessions, analyses, and follow-up turns to Postgres-backed Prisma repositories. Image bytes remain in-process for this milestone; a future milestone will move them to blob storage (e.g. Supabase Storage).
+
+```bash
+# .env (copy from .env.example)
+DATABASE_URL=postgresql://organaizer:organaizer@localhost:54322/organaizer?schema=public
+PERSISTENCE_DRIVER=prisma
+
+# Apply migrations, then start
+pnpm --filter @organaizer/api prisma:migrate:dev
+pnpm --filter @organaizer/api dev
+```
+
+The default (no `PERSISTENCE_DRIVER` set, or `PERSISTENCE_DRIVER=memory`) requires no database. All existing tests run in memory mode and pass without a DB.
+
 ### API quick-start
 
 ```bash
