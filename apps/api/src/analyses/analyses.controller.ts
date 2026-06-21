@@ -93,7 +93,7 @@ export class AnalysesController {
     @Req() req: AuthedRequest,
     @UploadedFile() file: Express.Multer.File | undefined,
     @Body('goal') rawGoal: string | undefined,
-  ): Analysis {
+  ): Promise<Analysis> {
     if (!file) {
       throw new BadRequestException(
         errorEnvelope('invalid_file', 'An image file is required.'),
@@ -138,7 +138,7 @@ export class AnalysesController {
   }
 
   @Get(':id')
-  getAnalysis(@Req() req: AuthedRequest, @Param('id') id: string): Analysis {
+  getAnalysis(@Req() req: AuthedRequest, @Param('id') id: string): Promise<Analysis> {
     const { sessionId } = req.session;
     return this.analysesService.getAnalysis(id, sessionId);
   }
@@ -149,7 +149,7 @@ export class AnalysesController {
     @Req() req: AuthedRequest,
     @Param('id') id: string,
     @Body() body: unknown,
-  ): FollowUpAnswer {
+  ): Promise<FollowUpAnswer> {
     const parsed = FollowUpRequestSchema.safeParse(body);
     if (!parsed.success) {
       const issues = parsed.error.issues;
@@ -176,13 +176,13 @@ export class ImagesController {
   constructor(private readonly analysesService: AnalysesService) {}
 
   @Get(':sessionId/:analysisId/:filename')
-  serveImage(
+  async serveImage(
     @Param('sessionId') sessionId: string,
     @Param('analysisId') analysisId: string,
     @Param('filename') _filename: string,
     @Res() res: Response,
-  ): void {
-    const stored = this.analysesService.getImageBuffer(sessionId, analysisId);
+  ): Promise<void> {
+    const stored = await this.analysesService.getImageBuffer(sessionId, analysisId);
 
     if (!stored) {
       throw new NotFoundException(

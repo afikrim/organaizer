@@ -49,8 +49,8 @@ describe('SessionService', () => {
     service = module.get<SessionService>(SessionService);
   });
 
-  it('creates a session with uuid and token', () => {
-    const session = service.createSession();
+  it('creates a session with uuid and token', async () => {
+    const session = await service.createSession();
     expect(session.sessionId).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
     );
@@ -58,15 +58,15 @@ describe('SessionService', () => {
     expect(session.createdAt).toBeTruthy();
   });
 
-  it('finds session by token', () => {
-    const session = service.createSession();
-    const found = service.findByToken(session.token);
+  it('finds session by token', async () => {
+    const session = await service.createSession();
+    const found = await service.findByToken(session.token);
     expect(found).toBeDefined();
     expect(found?.sessionId).toBe(session.sessionId);
   });
 
-  it('returns undefined for unknown token', () => {
-    const found = service.findByToken('nonexistent-token');
+  it('returns undefined for unknown token', async () => {
+    const found = await service.findByToken('nonexistent-token');
     expect(found).toBeUndefined();
   });
 });
@@ -85,12 +85,12 @@ describe('AnalysesService', () => {
     sessionService = module.get<SessionService>(SessionService);
   });
 
-  it('creates an analysis and retrieves it', () => {
-    const session = sessionService.createSession();
+  it('creates an analysis and retrieves it', async () => {
+    const session = await sessionService.createSession();
     const analysisId = randomUUID();
     const imageUrl = makeImageUrl(session.sessionId, analysisId, STUB_IMAGE.originalname);
 
-    const analysis = analysesService.createAnalysis(
+    const analysis = await analysesService.createAnalysis(
       session.sessionId,
       'cleaner',
       imageUrl,
@@ -107,16 +107,16 @@ describe('AnalysesService', () => {
     expect(analysis.checklist.length).toBeLessThanOrEqual(6);
     expect(analysis.followUps).toHaveLength(0);
 
-    const fetched = analysesService.getAnalysis(analysis.id, session.sessionId);
+    const fetched = await analysesService.getAnalysis(analysis.id, session.sessionId);
     expect(fetched.id).toBe(analysis.id);
     expect(fetched.imageUrl).toBe(imageUrl);
   });
 
-  it('imageUrl is a valid http URL', () => {
-    const session = sessionService.createSession();
+  it('imageUrl is a valid http URL', async () => {
+    const session = await sessionService.createSession();
     const analysisId = randomUUID();
     const imageUrl = makeImageUrl(session.sessionId, analysisId, 'test.png');
-    const analysis = analysesService.createAnalysis(
+    const analysis = await analysesService.createAnalysis(
       session.sessionId,
       'storage',
       imageUrl,
@@ -127,11 +127,11 @@ describe('AnalysesService', () => {
     expect(analysis.imageUrl).toMatch(/^https?:\/\//);
   });
 
-  it('throws not found for wrong session', () => {
-    const s1 = sessionService.createSession();
-    const s2 = sessionService.createSession();
+  it('throws not found for wrong session', async () => {
+    const s1 = await sessionService.createSession();
+    const s2 = await sessionService.createSession();
     const aid = randomUUID();
-    const analysis = analysesService.createAnalysis(
+    const analysis = await analysesService.createAnalysis(
       s1.sessionId,
       'safer',
       makeImageUrl(s1.sessionId, aid, 'img.png'),
@@ -139,13 +139,13 @@ describe('AnalysesService', () => {
       STUB_IMAGE,
     );
 
-    expect(() => analysesService.getAnalysis(analysis.id, s2.sessionId)).toThrow();
+    await expect(analysesService.getAnalysis(analysis.id, s2.sessionId)).rejects.toThrow();
   });
 
-  it('adds a follow-up answer', () => {
-    const session = sessionService.createSession();
+  it('adds a follow-up answer', async () => {
+    const session = await sessionService.createSession();
     const aid = randomUUID();
-    const analysis = analysesService.createAnalysis(
+    const analysis = await analysesService.createAnalysis(
       session.sessionId,
       'work',
       makeImageUrl(session.sessionId, aid, 'desk.jpg'),
@@ -153,7 +153,7 @@ describe('AnalysesService', () => {
       STUB_IMAGE,
     );
 
-    const answer = analysesService.addFollowUp(
+    const answer = await analysesService.addFollowUp(
       analysis.id,
       session.sessionId,
       'How long will it take?',
@@ -164,10 +164,10 @@ describe('AnalysesService', () => {
     expect(answer.question).toBe('How long will it take?');
   });
 
-  it('getImageBuffer returns stored buffer for correct session', () => {
-    const session = sessionService.createSession();
+  it('getImageBuffer returns stored buffer for correct session', async () => {
+    const session = await sessionService.createSession();
     const aid = randomUUID();
-    analysesService.createAnalysis(
+    await analysesService.createAnalysis(
       session.sessionId,
       'aesthetics',
       makeImageUrl(session.sessionId, aid, 'room.jpg'),
@@ -175,17 +175,17 @@ describe('AnalysesService', () => {
       STUB_IMAGE,
     );
 
-    const stored = analysesService.getImageBuffer(session.sessionId, aid);
+    const stored = await analysesService.getImageBuffer(session.sessionId, aid);
     expect(stored).toBeDefined();
     expect(stored?.mimetype).toBe('image/jpeg');
     expect(stored?.originalname).toBe('room.jpg');
   });
 
-  it('getImageBuffer returns undefined for wrong session', () => {
-    const s1 = sessionService.createSession();
-    const s2 = sessionService.createSession();
+  it('getImageBuffer returns undefined for wrong session', async () => {
+    const s1 = await sessionService.createSession();
+    const s2 = await sessionService.createSession();
     const aid = randomUUID();
-    analysesService.createAnalysis(
+    await analysesService.createAnalysis(
       s1.sessionId,
       'cleaner',
       makeImageUrl(s1.sessionId, aid, 'room.jpg'),
@@ -193,7 +193,7 @@ describe('AnalysesService', () => {
       STUB_IMAGE,
     );
 
-    const stored = analysesService.getImageBuffer(s2.sessionId, aid);
+    const stored = await analysesService.getImageBuffer(s2.sessionId, aid);
     expect(stored).toBeUndefined();
   });
 });

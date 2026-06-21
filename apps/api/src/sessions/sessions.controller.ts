@@ -8,8 +8,8 @@ export class SessionsController {
 
   @Post()
   @HttpCode(201)
-  createSession(): CreateSessionResponse {
-    const session = this.sessionService.createSession();
+  async createSession(): Promise<CreateSessionResponse> {
+    const session = await this.sessionService.createSession();
     return {
       sessionId: session.sessionId,
       token: session.token,

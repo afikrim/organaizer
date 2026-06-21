@@ -1,20 +1,25 @@
 import { Injectable } from '@nestjs/common';
-import type { Session } from '../sessions/session.service';
+
+export interface SessionRecord {
+  sessionId: string;
+  tokenHash: string;
+  createdAt: string;
+}
 
 export abstract class SessionRepository {
-  abstract save(session: Session): void;
-  abstract findByToken(token: string): Session | undefined;
+  abstract save(session: SessionRecord): Promise<void>;
+  abstract findByTokenHash(tokenHash: string): Promise<SessionRecord | undefined>;
 }
 
 @Injectable()
 export class InMemorySessionRepository implements SessionRepository {
-  private readonly sessions = new Map<string, Session>();
+  private readonly sessions = new Map<string, SessionRecord>();
 
-  save(session: Session): void {
-    this.sessions.set(session.token, session);
+  async save(session: SessionRecord): Promise<void> {
+    this.sessions.set(session.tokenHash, session);
   }
 
-  findByToken(token: string): Session | undefined {
-    return this.sessions.get(token);
+  async findByTokenHash(tokenHash: string): Promise<SessionRecord | undefined> {
+    return this.sessions.get(tokenHash);
   }
 }

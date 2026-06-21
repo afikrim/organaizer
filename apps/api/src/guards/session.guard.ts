@@ -12,7 +12,7 @@ import { errorEnvelope } from '../common/error.envelope';
 export class SessionGuard implements CanActivate {
   constructor(private readonly sessionService: SessionService) {}
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
     const authHeader = request.headers['authorization'];
 
@@ -23,7 +23,7 @@ export class SessionGuard implements CanActivate {
     }
 
     const token = authHeader.slice(7).trim();
-    const session = this.sessionService.findByToken(token);
+    const session = await this.sessionService.findByToken(token);
 
     if (!session) {
       throw new UnauthorizedException(

@@ -14,29 +14,31 @@ export class AnalysesService {
     private readonly images: ImageStorage,
   ) {}
 
-  createAnalysis(
+  async createAnalysis(
     sessionId: string,
     goal: Goal,
     imageUrl: string,
     analysisId: string,
     image: StoredImage,
-  ): Analysis {
+  ): Promise<Analysis> {
     const base = this.vision.createAnalysis(analysisId, goal, imageUrl);
     const imageKey = this.buildImageKey(sessionId, analysisId);
+    const { imageUrl: _imageUrl, ...persistedAnalysis } = base;
+    void _imageUrl;
 
-    const analysis: Analysis = {
-      ...base,
+    const analysis = {
+      ...persistedAnalysis,
       followUps: [],
     };
 
-    this.images.save(imageKey, image);
-    this.analyses.save({ sessionId, imageKey, analysis });
+    await this.images.save(imageKey, image, imageUrl);
+    await this.analyses.save({ sessionId, imageKey, analysis });
 
-    return analysis;
+    return { ...analysis, imageUrl };
   }
 
-  getAnalysis(id: string, sessionId: string): Analysis {
-    const record = this.analyses.findById(id);
+  async getAnalysis(id: string, sessionId: string): Promise<Analysis> {
+    const record = await this.analyses.findById(id);
 
     if (!record || record.sessionId !== sessionId) {
       throw new NotFoundException(
@@ -44,14 +46,14 @@ export class AnalysesService {
       );
     }
 
-    return record.analysis;
+    return this.toWire(record);
   }
 
-  getImageBuffer(
+  async getImageBuffer(
     sessionId: string,
     analysisId: string,
-  ): { buffer: Buffer; mimetype: string; originalname: string } | undefined {
-    const record = this.analyses.findById(analysisId);
+  ): Promise<{ buffer: Buffer; mimetype: string; originalname: string } | undefined> {
+    const record = await this.analyses.findById(analysisId);
     if (!record || record.sessionId !== sessionId) {
       return undefined;
     }
@@ -59,12 +61,12 @@ export class AnalysesService {
     return this.images.get(record.imageKey);
   }
 
-  addFollowUp(
+  async addFollowUp(
     analysisId: string,
     sessionId: string,
     question: string,
-  ): FollowUpAnswer {
-    const record = this.analyses.findById(analysisId);
+  ): Promise<FollowUpAnswer> {
+    const record = await this.analyses.findById(analysisId);
 
     if (!record || record.sessionId !== sessionId) {
       throw new NotFoundException(
@@ -89,7 +91,12 @@ export class AnalysesService {
       createdAt,
     };
 
-    this.analyses.appendFollowUp(analysisId, turn);
+    const updated = await this.analyses.appendFollowUp(analysisId, sessionId, turn);
+    if (!updated) {
+      throw new NotFoundException(
+        errorEnvelope('not_found', `Analysis ${analysisId} not found.`),
+      );
+    }
 
     const response: FollowUpAnswer = {
       id: answerId,
@@ -105,5 +112,19 @@ export class AnalysesService {
 
   private buildImageKey(sessionId: string, analysisId: string): string {
     return `${sessionId}/${analysisId}`;
+  }
+
+  private async toWire(record: {
+    imageKey: string;
+    analysis: Omit<Analysis, 'imageUrl'>;
+  }): Promise<Analysis> {
+    const imageUrl = await this.images.getUrl(record.imageKey);
+    if (!imageUrl) {
+      throw new NotFoundException(
+        errorEnvelope('not_found', `Image for analysis ${record.analysis.id} not found.`),
+      );
+    }
+
+    return { ...record.analysis, imageUrl };
   }
 }

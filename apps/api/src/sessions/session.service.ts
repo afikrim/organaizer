@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { randomBytes, randomUUID } from 'crypto';
+import { createHash, randomBytes, randomUUID } from 'crypto';
 import { SessionRepository } from '../persistence/session.repository';
 
 export interface Session {
@@ -12,16 +12,27 @@ export interface Session {
 export class SessionService {
   constructor(private readonly sessions: SessionRepository) {}
 
-  createSession(): Session {
+  async createSession(): Promise<Session> {
     const sessionId = randomUUID();
     const token = randomBytes(32).toString('hex');
     const createdAt = new Date().toISOString();
     const session: Session = { sessionId, token, createdAt };
-    this.sessions.save(session);
+    await this.sessions.save({
+      sessionId,
+      tokenHash: this.hashToken(token),
+      createdAt,
+    });
     return session;
   }
 
-  findByToken(token: string): Session | undefined {
-    return this.sessions.findByToken(token);
+  async findByToken(token: string): Promise<Session | undefined> {
+    const record = await this.sessions.findByTokenHash(this.hashToken(token));
+    if (!record) return undefined;
+
+    return { sessionId: record.sessionId, token, createdAt: record.createdAt };
+  }
+
+  private hashToken(token: string): string {
+    return createHash('sha256').update(token).digest('hex');
   }
 }
