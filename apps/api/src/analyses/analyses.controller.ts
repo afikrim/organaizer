@@ -61,6 +61,14 @@ function buildImageUrl(
   return `${proto}://${host}${prefix}/images/${sessionId}/${analysisId}/${encodeURIComponent(filename)}`;
 }
 
+function buildFallbackImageUrl(
+  req: Request,
+  sessionId: string,
+  analysisId: string,
+): string {
+  return buildImageUrl(req, sessionId, analysisId, 'image');
+}
+
 @Controller('analyses')
 @UseGuards(SessionGuard)
 export class AnalysesController {
@@ -140,7 +148,11 @@ export class AnalysesController {
   @Get(':id')
   getAnalysis(@Req() req: AuthedRequest, @Param('id') id: string): Promise<Analysis> {
     const { sessionId } = req.session;
-    return this.analysesService.getAnalysis(id, sessionId);
+    return this.analysesService.getAnalysis(
+      id,
+      sessionId,
+      buildFallbackImageUrl(req, sessionId, id),
+    );
   }
 
   @Post(':id/follow-up')

@@ -37,7 +37,11 @@ export class AnalysesService {
     return { ...analysis, imageUrl };
   }
 
-  async getAnalysis(id: string, sessionId: string): Promise<Analysis> {
+  async getAnalysis(
+    id: string,
+    sessionId: string,
+    fallbackImageUrl?: string,
+  ): Promise<Analysis> {
     const record = await this.analyses.findById(id);
 
     if (!record || record.sessionId !== sessionId) {
@@ -46,7 +50,7 @@ export class AnalysesService {
       );
     }
 
-    return this.toWire(record);
+    return this.toWire(record, fallbackImageUrl);
   }
 
   async getImageBuffer(
@@ -117,8 +121,8 @@ export class AnalysesService {
   private async toWire(record: {
     imageKey: string;
     analysis: Omit<Analysis, 'imageUrl'>;
-  }): Promise<Analysis> {
-    const imageUrl = await this.images.getUrl(record.imageKey);
+  }, fallbackImageUrl?: string): Promise<Analysis> {
+    const imageUrl = (await this.images.getUrl(record.imageKey)) ?? fallbackImageUrl;
     if (!imageUrl) {
       throw new NotFoundException(
         errorEnvelope('not_found', `Image for analysis ${record.analysis.id} not found.`),

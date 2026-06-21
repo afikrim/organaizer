@@ -9,6 +9,7 @@ import { SessionsModule } from './sessions/sessions.module';
 import { MockVisionProvider } from './vision/mock-vision.provider';
 import { AnalysesService } from './analyses/analyses.service';
 import { PersistenceModule } from './persistence/persistence.module';
+import { ImageStorage } from './persistence/image.storage';
 
 // Minimal stub image for unit tests – a 1×1 transparent PNG as a Buffer.
 const STUB_IMAGE = {
@@ -74,15 +75,16 @@ describe('SessionService', () => {
 describe('AnalysesService', () => {
   let analysesService: AnalysesService;
   let sessionService: SessionService;
+  let moduleRef: TestingModule;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+    moduleRef = await Test.createTestingModule({
       imports: [PersistenceModule],
       providers: [SessionService, MockVisionProvider, AnalysesService],
     }).compile();
 
-    analysesService = module.get<AnalysesService>(AnalysesService);
-    sessionService = module.get<SessionService>(SessionService);
+    analysesService = moduleRef.get<AnalysesService>(AnalysesService);
+    sessionService = moduleRef.get<SessionService>(SessionService);
   });
 
   it('creates an analysis and retrieves it', async () => {
@@ -110,6 +112,33 @@ describe('AnalysesService', () => {
     const fetched = await analysesService.getAnalysis(analysis.id, session.sessionId);
     expect(fetched.id).toBe(analysis.id);
     expect(fetched.imageUrl).toBe(imageUrl);
+  });
+
+  it('uses fallback image URL when stored URL is unavailable', async () => {
+    const session = await sessionService.createSession();
+    const analysisId = randomUUID();
+    const imageUrl = makeImageUrl(session.sessionId, analysisId, STUB_IMAGE.originalname);
+    const fallbackImageUrl = makeImageUrl(session.sessionId, analysisId, 'image');
+
+    const analysis = await analysesService.createAnalysis(
+      session.sessionId,
+      'cleaner',
+      imageUrl,
+      analysisId,
+      STUB_IMAGE,
+    );
+
+    const imageStorage = moduleRef.get<ImageStorage>(ImageStorage);
+    jest.spyOn(imageStorage, 'getUrl').mockResolvedValueOnce(undefined);
+
+    const fetched = await analysesService.getAnalysis(
+      analysis.id,
+      session.sessionId,
+      fallbackImageUrl,
+    );
+
+    expect(fetched.id).toBe(analysis.id);
+    expect(fetched.imageUrl).toBe(fallbackImageUrl);
   });
 
   it('imageUrl is a valid http URL', async () => {
