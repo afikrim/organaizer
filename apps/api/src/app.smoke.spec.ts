@@ -8,6 +8,7 @@ import { SessionService } from './sessions/session.service';
 import { SessionsModule } from './sessions/sessions.module';
 import { MockVisionProvider } from './vision/mock-vision.provider';
 import { AnalysesService } from './analyses/analyses.service';
+import { PersistenceModule } from './persistence/persistence.module';
 
 // Minimal stub image for unit tests – a 1×1 transparent PNG as a Buffer.
 const STUB_IMAGE = {
@@ -76,6 +77,7 @@ describe('AnalysesService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [PersistenceModule],
       providers: [SessionService, MockVisionProvider, AnalysesService],
     }).compile();
 

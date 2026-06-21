@@ -3,23 +3,16 @@ import { randomUUID } from 'crypto';
 import type { Analysis, FollowUpAnswer, FollowUpTurn, Goal } from '@organaizer/schema';
 import { MockVisionProvider } from '../vision/mock-vision.provider';
 import { errorEnvelope } from '../common/error.envelope';
-
-interface StoredImage {
-  buffer: Buffer;
-  mimetype: string;
-  originalname: string;
-}
-
-interface StoredAnalysis extends Analysis {
-  sessionId: string;
-  image: StoredImage;
-}
+import { AnalysisRepository } from '../persistence/analysis.repository';
+import { ImageStorage, type StoredImage } from '../persistence/image.storage';
 
 @Injectable()
 export class AnalysesService {
-  private readonly store = new Map<string, StoredAnalysis>();
-
-  constructor(private readonly vision: MockVisionProvider) {}
+  constructor(
+    private readonly vision: MockVisionProvider,
+    private readonly analyses: AnalysisRepository,
+    private readonly images: ImageStorage,
+  ) {}
 
   createAnalysis(
     sessionId: string,
@@ -29,39 +22,41 @@ export class AnalysesService {
     image: StoredImage,
   ): Analysis {
     const base = this.vision.createAnalysis(analysisId, goal, imageUrl);
+    const imageKey = this.buildImageKey(sessionId, analysisId);
 
-    const analysis: StoredAnalysis = {
+    const analysis: Analysis = {
       ...base,
       followUps: [],
-      sessionId,
-      image,
     };
 
-    this.store.set(analysisId, analysis);
-    return this.toWire(analysis);
+    this.images.save(imageKey, image);
+    this.analyses.save({ sessionId, imageKey, analysis });
+
+    return analysis;
   }
 
   getAnalysis(id: string, sessionId: string): Analysis {
-    const analysis = this.store.get(id);
+    const record = this.analyses.findById(id);
 
-    if (!analysis || analysis.sessionId !== sessionId) {
+    if (!record || record.sessionId !== sessionId) {
       throw new NotFoundException(
         errorEnvelope('not_found', `Analysis ${id} not found.`),
       );
     }
 
-    return this.toWire(analysis);
+    return record.analysis;
   }
 
   getImageBuffer(
     sessionId: string,
     analysisId: string,
   ): { buffer: Buffer; mimetype: string; originalname: string } | undefined {
-    const analysis = this.store.get(analysisId);
-    if (!analysis || analysis.sessionId !== sessionId) {
+    const record = this.analyses.findById(analysisId);
+    if (!record || record.sessionId !== sessionId) {
       return undefined;
     }
-    return analysis.image;
+
+    return this.images.get(record.imageKey);
   }
 
   addFollowUp(
@@ -69,9 +64,9 @@ export class AnalysesService {
     sessionId: string,
     question: string,
   ): FollowUpAnswer {
-    const analysis = this.store.get(analysisId);
+    const record = this.analyses.findById(analysisId);
 
-    if (!analysis || analysis.sessionId !== sessionId) {
+    if (!record || record.sessionId !== sessionId) {
       throw new NotFoundException(
         errorEnvelope('not_found', `Analysis ${analysisId} not found.`),
       );
@@ -80,7 +75,11 @@ export class AnalysesService {
     const answerId = randomUUID();
     const createdAt = new Date().toISOString();
 
-    const partial = this.vision.createFollowUpAnswer(analysisId, question, analysis.goal);
+    const partial = this.vision.createFollowUpAnswer(
+      analysisId,
+      question,
+      record.analysis.goal,
+    );
 
     const turn: FollowUpTurn = {
       id: answerId,
@@ -90,7 +89,7 @@ export class AnalysesService {
       createdAt,
     };
 
-    analysis.followUps.push(turn);
+    this.analyses.appendFollowUp(analysisId, turn);
 
     const response: FollowUpAnswer = {
       id: answerId,
@@ -104,10 +103,7 @@ export class AnalysesService {
     return response;
   }
 
-  private toWire(analysis: StoredAnalysis): Analysis {
-    const { sessionId: _sessionId, image: _image, ...rest } = analysis;
-    void _sessionId;
-    void _image;
-    return rest;
+  private buildImageKey(sessionId: string, analysisId: string): string {
+    return `${sessionId}/${analysisId}`;
   }
 }
