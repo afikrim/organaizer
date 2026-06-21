@@ -23,7 +23,7 @@ export const mockZones: Zone[] = [
     suggestion: 'Route them along the baseboard or use a cable management box.'
   },
   {
-    id: 'c3d4e5f6-a7b8-4c9d-0e1f-23456789abcd',
+    id: 'c3d4e5f6-a7b8-4c9d-8e1f-23456789abcd',
     number: 3,
     label: 'Overhead Shelf Risk',
     priority: 'low',
