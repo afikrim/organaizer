@@ -23,9 +23,17 @@ importers:
 
   packages/config: {}
 
-  packages/schema: {}
+  packages/schema:
+    dependencies:
+      zod:
+        specifier: ^3.25.0
+        version: 3.25.76
 
-  packages/types: {}
+  packages/types:
+    dependencies:
+      '@organaizer/schema':
+        specifier: workspace:*
+        version: link:../schema
 
 packages:
 
@@ -68,6 +76,9 @@ packages:
     engines: {node: '>=14.17'}
     hasBin: true
 
+  zod@3.25.76:
+    resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
+
 snapshots:
 
   '@turbo/darwin-64@2.9.18':
@@ -98,3 +109,5 @@ snapshots:
       '@turbo/windows-arm64': 2.9.18
 
   typescript@5.9.3: {}
+
+  zod@3.25.76: {}

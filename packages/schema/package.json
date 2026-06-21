@@ -4,13 +4,21 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
   },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "echo 'schema: build not configured yet'",
+    "build": "tsc --project tsconfig.json",
     "typecheck": "tsc --noEmit",
     "lint": "echo 'schema: lint not configured yet'",
     "test": "echo 'schema: test not configured yet'",
     "clean": "rm -rf dist .turbo"
+  },
+  "dependencies": {
+    "zod": "^3.25.0"
   }
 }

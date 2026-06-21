@@ -1,0 +1,433 @@
+openapi: "3.1.0"
+
+info:
+  title: OrganAIzer API
+  version: "0.1.0"
+  description: >
+    REST API for the OrganAIzer AI-powered space-organization assistant.
+    All authenticated endpoints require an anonymous bearer session token
+    obtained from POST /v1/sessions.
+
+servers:
+  - url: http://localhost:3000/v1
+    description: Local development
+  - url: https://api.organaizer.app/v1
+    description: Production
+
+# ---------------------------------------------------------------------------
+# Security
+# ---------------------------------------------------------------------------
+components:
+  securitySchemes:
+    SessionToken:
+      type: http
+      scheme: bearer
+      description: Anonymous session token issued by POST /v1/sessions.
+
+  # -------------------------------------------------------------------------
+  # Reusable schemas
+  # -------------------------------------------------------------------------
+  schemas:
+
+    Goal:
+      type: string
+      enum: [cleaner, safer, storage, work, aesthetics]
+      description: The organizational goal selected by the user.
+
+    IssueType:
+      type: string
+      enum:
+        - clutter
+        - cable_mess
+        - unsafe_placement
+        - wasted_space
+        - poor_accessibility
+        - storage_opportunity
+        - aesthetic_improvement
+      description: Category of the identified issue in a zone.
+
+    Priority:
+      type: string
+      enum: [high, medium, low]
+      description: Urgency level of a zone issue.
+
+    Box:
+      description: >
+        Bounding box in percentage coordinates (0–100) relative to the image.
+        Null when no region can be determined.
+      oneOf:
+        - type: "null"
+        - type: object
+          required: [x, y, width, height]
+          additionalProperties: false
+          properties:
+            x:
+              type: number
+              minimum: 0
+              maximum: 100
+            y:
+              type: number
+              minimum: 0
+              maximum: 100
+            width:
+              type: number
+              minimum: 0
+              maximum: 100
+            height:
+              type: number
+              minimum: 0
+              maximum: 100
+
+    Zone:
+      type: object
+      required: [id, number, label, priority, box, issue, suggestion]
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        number:
+          type: integer
+          minimum: 1
+        label:
+          type: string
+          minLength: 1
+        type:
+          $ref: "#/components/schemas/IssueType"
+        priority:
+          $ref: "#/components/schemas/Priority"
+        box:
+          $ref: "#/components/schemas/Box"
+        issue:
+          type: string
+          minLength: 1
+        suggestion:
+          type: string
+          minLength: 1
+
+    FollowUpTurn:
+      type: object
+      required: [id, question, answer, createdAt]
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        question:
+          type: string
+          minLength: 1
+        answer:
+          type: string
+          minLength: 1
+        safetyNote:
+          type: [string, "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    Analysis:
+      type: object
+      required:
+        [id, goal, status, summary, imageUrl, zones, checklist, followUps, createdAt]
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        goal:
+          $ref: "#/components/schemas/Goal"
+        status:
+          type: string
+          enum: [complete]
+        summary:
+          type: string
+          minLength: 1
+        imageUrl:
+          type: string
+          format: uri
+        model:
+          type: string
+        zones:
+          type: array
+          items:
+            $ref: "#/components/schemas/Zone"
+        checklist:
+          type: array
+          minItems: 3
+          maxItems: 6
+          items:
+            type: string
+            minLength: 1
+        followUps:
+          type: array
+          items:
+            $ref: "#/components/schemas/FollowUpTurn"
+        createdAt:
+          type: string
+          format: date-time
+
+    FollowUpAnswer:
+      type: object
+      required: [analysisId, question, answer, createdAt]
+      additionalProperties: false
+      properties:
+        analysisId:
+          type: string
+          format: uuid
+        question:
+          type: string
+          minLength: 1
+        answer:
+          type: string
+          minLength: 1
+        safetyNote:
+          type: [string, "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    Error:
+      type: object
+      required: [code, message]
+      additionalProperties: false
+      properties:
+        code:
+          type: string
+          minLength: 1
+        message:
+          type: string
+          minLength: 1
+        details:
+          type: object
+          additionalProperties: true
+
+    LowConfidenceError:
+      allOf:
+        - $ref: "#/components/schemas/Error"
+        - type: object
+          required: [code]
+          properties:
+            code:
+              type: string
+              enum: [low_confidence]
+
+  # -------------------------------------------------------------------------
+  # Reusable responses
+  # -------------------------------------------------------------------------
+  responses:
+    Unauthorized:
+      description: Missing or invalid session token.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+    NotFound:
+      description: The requested resource does not exist.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+    TooManyRequests:
+      description: Rate limit exceeded.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+    ServiceUnavailable:
+      description: Upstream AI service unavailable.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+# ---------------------------------------------------------------------------
+# Paths
+# ---------------------------------------------------------------------------
+paths:
+
+  /health:
+    get:
+      operationId: getHealth
+      summary: Health check
+      description: Returns 200 when the API process is running.
+      tags: [System]
+      responses:
+        "200":
+          description: API is healthy.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                additionalProperties: false
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+
+  /sessions:
+    post:
+      operationId: createSession
+      summary: Create anonymous session
+      description: Issues an anonymous bearer token for subsequent requests.
+      tags: [Auth]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+      responses:
+        "201":
+          description: Session created.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [sessionId, token, createdAt]
+                additionalProperties: false
+                properties:
+                  sessionId:
+                    type: string
+                    format: uuid
+                  token:
+                    type: string
+                    minLength: 1
+                  createdAt:
+                    type: string
+                    format: date-time
+
+  /analyses:
+    post:
+      operationId: createAnalysis
+      summary: Submit image for analysis
+      description: >
+        Accepts a multipart form with an image file and goal field.
+        Returns the completed analysis (status: complete).
+      tags: [Analysis]
+      security:
+        - SessionToken: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [image, goal]
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: The room/space image to analyse.
+                goal:
+                  $ref: "#/components/schemas/Goal"
+      responses:
+        "201":
+          description: Analysis complete.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Analysis"
+        "400":
+          description: Bad request (missing fields, invalid goal, etc.).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "413":
+          description: Image file too large.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: >
+            AI model returned low-confidence results and cannot produce a
+            reliable analysis.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LowConfidenceError"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+
+  /analyses/{id}:
+    get:
+      operationId: getAnalysis
+      summary: Retrieve analysis by ID
+      tags: [Analysis]
+      security:
+        - SessionToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Analysis found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Analysis"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /analyses/{id}/follow-up:
+    post:
+      operationId: createFollowUp
+      summary: Ask a follow-up question about an analysis
+      tags: [Analysis]
+      security:
+        - SessionToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [question]
+              additionalProperties: false
+              properties:
+                question:
+                  type: string
+                  minLength: 3
+                  maxLength: 500
+      responses:
+        "200":
+          description: Follow-up answer generated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FollowUpAnswer"
+        "400":
+          description: Bad request (empty question, etc.).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
