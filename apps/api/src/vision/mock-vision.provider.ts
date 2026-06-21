@@ -14,10 +14,9 @@ export class MockVisionProvider {
   createAnalysis(
     analysisId: string,
     goal: Goal,
-    originalname: string,
-    sessionId: string,
+    imageUrl: string,
   ): Omit<Analysis, 'followUps'> {
-    const zones = this.buildZones(goal, originalname);
+    const zones = this.buildZones(goal);
     const checklist = this.buildChecklist(goal);
     const summary = this.buildSummary(goal, zones.length);
 
@@ -26,7 +25,7 @@ export class MockVisionProvider {
       goal,
       status: 'complete',
       summary,
-      imageUrl: `http://localhost:3000/v1/images/${sessionId}/${analysisId}/${encodeURIComponent(originalname)}`,
+      imageUrl,
       model: this.MODEL_NAME,
       zones,
       checklist,
@@ -48,7 +47,7 @@ export class MockVisionProvider {
     };
   }
 
-  private buildZones(goal: Goal, _filename: string): Zone[] {
+  private buildZones(goal: Goal): Zone[] {
     const zoneTemplates: Record<Goal, Zone[]> = {
       cleaner: [
         {

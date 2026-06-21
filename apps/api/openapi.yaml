@@ -264,12 +264,16 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [status]
+                required: [status, uptime]
                 additionalProperties: false
                 properties:
                   status:
                     type: string
                     enum: [ok]
+                  uptime:
+                    type: integer
+                    minimum: 0
+                    description: Seconds since the API process started.
 
   /sessions:
     post:

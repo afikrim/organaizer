@@ -4,8 +4,15 @@ import type { Analysis, FollowUpAnswer, FollowUpTurn, Goal } from '@organaizer/s
 import { MockVisionProvider } from '../vision/mock-vision.provider';
 import { errorEnvelope } from '../common/error.envelope';
 
+interface StoredImage {
+  buffer: Buffer;
+  mimetype: string;
+  originalname: string;
+}
+
 interface StoredAnalysis extends Analysis {
   sessionId: string;
+  image: StoredImage;
 }
 
 @Injectable()
@@ -17,15 +24,17 @@ export class AnalysesService {
   createAnalysis(
     sessionId: string,
     goal: Goal,
-    originalname: string,
+    imageUrl: string,
+    analysisId: string,
+    image: StoredImage,
   ): Analysis {
-    const analysisId = randomUUID();
-    const base = this.vision.createAnalysis(analysisId, goal, originalname, sessionId);
+    const base = this.vision.createAnalysis(analysisId, goal, imageUrl);
 
     const analysis: StoredAnalysis = {
       ...base,
       followUps: [],
       sessionId,
+      image,
     };
 
     this.store.set(analysisId, analysis);
@@ -42,6 +51,17 @@ export class AnalysesService {
     }
 
     return this.toWire(analysis);
+  }
+
+  getImageBuffer(
+    sessionId: string,
+    analysisId: string,
+  ): { buffer: Buffer; mimetype: string; originalname: string } | undefined {
+    const analysis = this.store.get(analysisId);
+    if (!analysis || analysis.sessionId !== sessionId) {
+      return undefined;
+    }
+    return analysis.image;
   }
 
   addFollowUp(
@@ -85,8 +105,9 @@ export class AnalysesService {
   }
 
   private toWire(analysis: StoredAnalysis): Analysis {
-    const { sessionId: _sessionId, ...rest } = analysis;
+    const { sessionId: _sessionId, image: _image, ...rest } = analysis;
     void _sessionId;
+    void _image;
     return rest;
   }
 }

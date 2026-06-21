@@ -4,16 +4,19 @@ import {
   Controller,
   Get,
   HttpCode,
+  NotFoundException,
   Param,
   Post,
   Req,
+  Res,
   UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
-import type { Request } from 'express';
+import type { Request, Response } from 'express';
+import { randomUUID } from 'crypto';
 import type { Analysis, FollowUpAnswer, Goal } from '@organaizer/schema';
 import { GoalSchema, FollowUpRequestSchema } from '@organaizer/schema';
 import { SessionGuard } from '../guards/session.guard';
@@ -29,12 +32,34 @@ const ALLOWED_MIME_TYPES = new Set([
   'image/heif',
 ]);
 
-const MAX_FILE_SIZE_BYTES = parseInt(
-  process.env['MAX_FILE_SIZE_MB'] ?? '8',
-  10,
-) * 1024 * 1024;
+const MAX_FILE_SIZE_BYTES =
+  parseInt(process.env['MAX_FILE_SIZE_MB'] ?? '8', 10) * 1024 * 1024;
 
 type AuthedRequest = Request & { session: Session };
+
+/** Build a fully-qualified image URL from the incoming request. */
+function buildImageUrl(
+  req: Request,
+  sessionId: string,
+  analysisId: string,
+  filename: string,
+): string {
+  // Prefer X-Forwarded-Proto / X-Forwarded-Host for reverse-proxy deployments;
+  // fall back to the direct connection values.
+  const proto =
+    (req.headers['x-forwarded-proto'] as string | undefined) ??
+    (req.secure ? 'https' : 'http');
+  const host =
+    (req.headers['x-forwarded-host'] as string | undefined) ?? req.headers.host ?? 'localhost';
+
+  // NestJS sets the global prefix at the application level (not via Express
+  // sub-router mounting), so req.baseUrl is always ''.  Instead, derive the
+  // prefix from req.originalUrl: strip the trailing "/analyses[/...]" segment.
+  // e.g. "/v1/analyses" → "/v1"
+  const prefix = req.originalUrl.replace(/\/analyses(\/.*)?(\?.*)?$/, '');
+
+  return `${proto}://${host}${prefix}/images/${sessionId}/${analysisId}/${encodeURIComponent(filename)}`;
+}
 
 @Controller('analyses')
 @UseGuards(SessionGuard)
@@ -98,7 +123,18 @@ export class AnalysesController {
     const goal: Goal = goalResult.data;
     const { sessionId } = req.session;
 
-    return this.analysesService.createAnalysis(sessionId, goal, file.originalname);
+    // Compute the image URL from this request so it reflects the actual
+    // host/port/base-path, not a hard-coded constant.
+    // We need the analysisId ahead of time to embed it in the URL; the service
+    // receives the pre-built URL rather than constructing it internally.
+    const analysisId = randomUUID();
+    const imageUrl = buildImageUrl(req, sessionId, analysisId, file.originalname);
+
+    return this.analysesService.createAnalysis(sessionId, goal, imageUrl, analysisId, {
+      buffer: file.buffer,
+      mimetype: file.mimetype,
+      originalname: file.originalname,
+    });
   }
 
   @Get(':id')
@@ -128,5 +164,35 @@ export class AnalysesController {
 
     const { sessionId } = req.session;
     return this.analysesService.addFollowUp(id, sessionId, parsed.data.question);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Public image-serving controller (no auth required)
+// ---------------------------------------------------------------------------
+
+@Controller('images')
+export class ImagesController {
+  constructor(private readonly analysesService: AnalysesService) {}
+
+  @Get(':sessionId/:analysisId/:filename')
+  serveImage(
+    @Param('sessionId') sessionId: string,
+    @Param('analysisId') analysisId: string,
+    @Param('filename') _filename: string,
+    @Res() res: Response,
+  ): void {
+    const stored = this.analysesService.getImageBuffer(sessionId, analysisId);
+
+    if (!stored) {
+      throw new NotFoundException(
+        errorEnvelope('not_found', 'Image not found.'),
+      );
+    }
+
+    res.set('Content-Type', stored.mimetype);
+    res.set('Content-Length', String(stored.buffer.length));
+    res.set('Cache-Control', 'no-store');
+    res.send(stored.buffer);
   }
 }
