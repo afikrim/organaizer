@@ -168,9 +168,12 @@ components:
 
     FollowUpAnswer:
       type: object
-      required: [analysisId, question, answer, createdAt]
+      required: [id, analysisId, question, answer, createdAt]
       additionalProperties: false
       properties:
+        id:
+          type: string
+          format: uuid
         analysisId:
           type: string
           format: uuid
@@ -431,3 +434,5 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"

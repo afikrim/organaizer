@@ -62,6 +62,7 @@ export const BoxSchema = z
     width: z.number().min(0).max(100),
     height: z.number().min(0).max(100),
   })
+  .strict()
   .nullable();
 export type Box = z.infer<typeof BoxSchema>;
 
@@ -78,7 +79,7 @@ export const ZoneSchema = z.object({
   box: BoxSchema,
   issue: z.string().min(1),
   suggestion: z.string().min(1),
-});
+}).strict();
 export type Zone = z.infer<typeof ZoneSchema>;
 
 // ---------------------------------------------------------------------------
@@ -91,7 +92,7 @@ export const FollowUpTurnSchema = z.object({
   answer: z.string().min(1),
   safetyNote: z.string().nullable().optional(),
   createdAt: z.string().datetime(),
-});
+}).strict();
 export type FollowUpTurn = z.infer<typeof FollowUpTurnSchema>;
 
 // ---------------------------------------------------------------------------
@@ -109,7 +110,7 @@ export const AnalysisSchema = z.object({
   checklist: z.array(z.string().min(1)).min(3).max(6),
   followUps: z.array(FollowUpTurnSchema),
   createdAt: z.string().datetime(),
-});
+}).strict();
 export type Analysis = z.infer<typeof AnalysisSchema>;
 
 // ---------------------------------------------------------------------------
@@ -120,18 +121,18 @@ export const CreateSessionResponseSchema = z.object({
   sessionId: z.string().uuid(),
   token: z.string().min(1),
   createdAt: z.string().datetime(),
-});
+}).strict();
 export type CreateSessionResponse = z.infer<typeof CreateSessionResponseSchema>;
 
 export const CreateAnalysisRequestSchema = z.object({
   goal: GoalSchema,
   // `image` is a multipart file field — validated at the transport layer.
-});
+}).strict();
 export type CreateAnalysisRequest = z.infer<typeof CreateAnalysisRequestSchema>;
 
 export const FollowUpRequestSchema = z.object({
   question: z.string().min(3).max(500),
-});
+}).strict();
 export type FollowUpRequest = z.infer<typeof FollowUpRequestSchema>;
 
 // ---------------------------------------------------------------------------
@@ -139,12 +140,13 @@ export type FollowUpRequest = z.infer<typeof FollowUpRequestSchema>;
 // ---------------------------------------------------------------------------
 
 export const FollowUpAnswerSchema = z.object({
+  id: z.string().uuid(),
   analysisId: z.string().uuid(),
   question: z.string().min(1),
   answer: z.string().min(1),
   safetyNote: z.string().nullable().optional(),
   createdAt: z.string().datetime(),
-});
+}).strict();
 export type FollowUpAnswer = z.infer<typeof FollowUpAnswerSchema>;
 
 // ---------------------------------------------------------------------------
@@ -155,7 +157,7 @@ export const ErrorSchema = z.object({
   code: z.string().min(1),
   message: z.string().min(1),
   details: z.record(z.string(), z.unknown()).optional(),
-});
+}).strict();
 export type ApiError = z.infer<typeof ErrorSchema>;
 
 export const LowConfidenceErrorSchema = ErrorSchema.extend({
