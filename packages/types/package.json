@@ -1,0 +1,16 @@
+{
+  "name": "@organaizer/types",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "echo 'types: build not configured yet'",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo 'types: lint not configured yet'",
+    "test": "echo 'types: test not configured yet'",
+    "clean": "rm -rf dist .turbo"
+  }
+}

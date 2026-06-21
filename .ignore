@@ -1,0 +1,17 @@
+# .ignore - used by tools that respect .ignore (fd, ripgrep, etc.)
+# This file controls what code search tools index.
+# Intentionally more permissive than .gitignore so agent tools
+# can read local state files that are excluded from git.
+
+# Always index agent state even if git-ignored
+!.slim/
+!.slim/deepwork/
+
+# Still exclude heavy / binary paths from search indexing
+node_modules/
+dist/
+build/
+.next/
+coverage/
+.turbo/
+*.tsbuildinfo

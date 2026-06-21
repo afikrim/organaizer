@@ -1,0 +1,13 @@
+{
+  "name": "@organaizer/api",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "echo 'api: dev not configured yet'",
+    "build": "echo 'api: build not configured yet'",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo 'api: lint not configured yet'",
+    "test": "echo 'api: test not configured yet'",
+    "clean": "rm -rf dist .turbo"
+  }
+}

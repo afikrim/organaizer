@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+.astro/
+
+# Turbo
+.turbo/
+
+# Test / coverage
+coverage/
+.nyc_output/
+
+# Environment files - keep .env.example, ignore the rest
+.env
+.env.*
+!.env.example
+
+# TypeScript
+*.tsbuildinfo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor
+.vscode/settings.json
+.idea/
+
+# Local agent state - do not commit
+.slim/deepwork/
+
+# OpenCode session state - do not commit
+.opencode/

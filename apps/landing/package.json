@@ -1,0 +1,13 @@
+{
+  "name": "@organaizer/landing",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "echo 'landing: dev not configured yet'",
+    "build": "echo 'landing: build not configured yet'",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo 'landing: lint not configured yet'",
+    "test": "echo 'landing: test not configured yet'",
+    "clean": "rm -rf dist .turbo"
+  }
+}

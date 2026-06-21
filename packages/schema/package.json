@@ -1,0 +1,16 @@
+{
+  "name": "@organaizer/schema",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "echo 'schema: build not configured yet'",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo 'schema: lint not configured yet'",
+    "test": "echo 'schema: test not configured yet'",
+    "clean": "rm -rf dist .turbo"
+  }
+}

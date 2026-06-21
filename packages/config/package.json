@@ -1,0 +1,10 @@
+{
+  "name": "@organaizer/config",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "typecheck": "echo 'config: no TS sources to check'",
+    "lint": "echo 'config: lint not configured yet'",
+    "clean": "rm -rf .turbo"
+  }
+}
