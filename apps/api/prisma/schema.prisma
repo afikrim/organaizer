@@ -40,15 +40,27 @@ model Analysis {
   zones             Json
   checklist         Json
   imageKey          String           @map("image_key")
-  imageOriginalName String           @map("image_original_name")
-  imageMimeType     String           @map("image_mime_type")
-  imageSizeBytes    Int              @map("image_size_bytes")
   createdAt         DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
   session           Session          @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  image             ImageObject      @relation(fields: [imageKey], references: [key], onDelete: Restrict)
   followUps         FollowUpTurn[]
 
   @@index([sessionId, createdAt])
+  @@index([imageKey])
   @@map("analyses")
+}
+
+model ImageObject {
+  key          String     @id
+  sessionId    String     @map("session_id") @db.Uuid
+  originalName String     @map("original_name")
+  mimeType     String     @map("mime_type")
+  sizeBytes    Int        @map("size_bytes")
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  analyses     Analysis[]
+
+  @@index([sessionId, createdAt])
+  @@map("image_objects")
 }
 
 model FollowUpTurn {
