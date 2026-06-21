@@ -9,6 +9,8 @@ Mobile-first AI space organization assistant.
 
 ## Development
 
+The monorepo foundation is scaffolded. App/package scripts are placeholders until the Astro landing, Vite web app, and NestJS API are implemented in later milestones.
+
 ```bash
 # Install dependencies (requires pnpm 11+)
 pnpm install
