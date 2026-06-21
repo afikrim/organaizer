@@ -1,13 +1,14 @@
-import { useState, useRef } from 'react';
-import { 
-  Camera, CheckCircle2, AlertTriangle, RefreshCw, ArrowRight, ShieldCheck, 
+import { useState, useRef, useCallback } from 'react';
+import {
+  Camera, CheckCircle2, AlertTriangle, RefreshCw, ArrowRight, ShieldCheck,
   Sparkles, ShieldAlert, Archive, Briefcase, Palette, Check, Image as ImageIcon
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import type { AppState } from '../types';
-import type { Goal } from '@organaizer/types';
-import { GOALS, DEFAULT_IMAGE, mockZones, mockChecklist, PRIORITY_COLORS } from '../assets/mockData';
+import type { Goal, Analysis, FollowUpAnswer } from '@organaizer/types';
+import { GOALS, DEFAULT_IMAGE, PRIORITY_COLORS } from '../assets/mockData';
+import { analyzeImage, sendFollowUp } from '../lib/api';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -27,69 +28,135 @@ export default function OrganaizerApp() {
   const [appState, setAppState] = useState<AppState>('upload');
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
   const [activeZoneId, setActiveZoneId] = useState<string | null>(null);
-  
+
+  // Image state: local preview URL (object URL or default) + uploaded File
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // API result
+  const [analysis, setAnalysis] = useState<Analysis | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set());
   const [forceError, setForceError] = useState(false);
 
   const [chatInput, setChatInput] = useState('');
-  const [chatTurn, setChatTurn] = useState<{ q: string, a: string } | null>(null);
+  // Chat turns derived from followUps array stored locally
+  const [chatTurns, setChatTurns] = useState<FollowUpAnswer[]>([]);
+  const [chatPending, setChatPending] = useState(false);
 
   const displayImage = uploadedImage || DEFAULT_IMAGE;
+
+  // The zones/checklist from the current analysis (or empty while no result yet)
+  const zones = analysis?.zones ?? [];
+  const checklist = analysis?.checklist ?? [];
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      setUploadedFile(file);
       setUploadedImage(URL.createObjectURL(file));
     }
   };
 
-  const simulateUpload = () => {
+  /**
+   * Convert the default hero PNG asset (already resolved as a URL by Vite)
+   * into a Blob/File so we can upload it as multipart.
+   */
+  const fetchDefaultImageAsBlob = useCallback(async (): Promise<File> => {
+    const res = await fetch(DEFAULT_IMAGE as string);
+    const blob = await res.blob();
+    return new File([blob], 'hero.jpg', { type: blob.type || 'image/jpeg' });
+  }, []);
+
+  const handleAnalyze = async () => {
     if (!selectedGoal) return;
+
+    // Demo Error mode: skip API and go straight to error state
+    if (forceError) {
+      setAppState('error');
+      setErrorMsg('Low-confidence demo error (local simulation).');
+      return;
+    }
+
     setAppState('loading');
-    setTimeout(() => {
-      if (forceError) {
-        setAppState('error');
-      } else {
-        setAppState('result');
-        setActiveZoneId(mockZones[0].id);
-      }
-    }, 2500);
+    setAnalysis(null);
+    setErrorMsg(null);
+    setChatTurns([]);
+    setCompletedTasks(new Set());
+
+    try {
+      // Use real file if chosen, else fetch the default hero as a Blob
+      const imageFile = uploadedFile ?? (await fetchDefaultImageAsBlob());
+      const result = await analyzeImage(imageFile, selectedGoal);
+      setAnalysis(result);
+      setActiveZoneId(result.zones[0]?.id ?? null);
+      setAppState('result');
+    } catch (err: unknown) {
+      const apiErr = err as { code?: string; message?: string };
+      setErrorMsg(apiErr?.message ?? 'Unknown error');
+      setAppState('error');
+    }
   };
 
   const resetApp = () => {
     setAppState('upload');
     setCompletedTasks(new Set());
     setActiveZoneId(null);
-    setChatTurn(null);
+    setChatTurns([]);
     setChatInput('');
     setUploadedImage(null);
+    setUploadedFile(null);
     setSelectedGoal(null);
+    setAnalysis(null);
+    setErrorMsg(null);
   };
 
-  const toggleTask = (id: string) => {
+  const toggleTask = (idx: number) => {
+    const key = String(idx);
     setCompletedTasks(prev => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
       return next;
     });
   };
 
-  const handleChatSubmit = (e?: React.FormEvent, preset?: string) => {
+  const handleChatSubmit = async (e?: React.FormEvent, preset?: string) => {
     e?.preventDefault();
     const query = preset || chatInput;
-    if (!query.trim()) return;
+    if (!query.trim() || !analysis) return;
     setChatInput('');
-    setChatTurn({ q: query, a: "I recommend using clear, stackable bins for loose items to maximize your vertical shelf space while keeping everything visible." });
+    setChatPending(true);
+    try {
+      const answer = await sendFollowUp(analysis.id, query);
+      setChatTurns(prev => [...prev, answer]);
+    } catch {
+      // Append a local error turn so the UI doesn't silently fail
+      const fallback: FollowUpAnswer = {
+        id: crypto.randomUUID(),
+        analysisId: analysis.id,
+        question: query,
+        answer: 'Sorry, something went wrong. Please try again.',
+        safetyNote: null,
+        createdAt: new Date().toISOString(),
+      };
+      setChatTurns(prev => [...prev, fallback]);
+    } finally {
+      setChatPending(false);
+    }
   };
+
+  // Suggested follow-up questions derived from API result or static defaults
+  const followUpSuggestions = analysis?.followUps?.length
+    ? []
+    : ['How long will this take?', 'Recommend storage bins'];
 
   return (
     <div className="min-h-screen bg-canvas-soft flex justify-center text-ink font-sans">
       <div className="w-full max-w-md bg-canvas min-h-screen shadow-sm relative overflow-hidden flex flex-col">
-        
+
         {/* Header */}
         <header className="sticky top-0 z-40 bg-canvas/80 backdrop-blur-md border-b border-hairline px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -97,9 +164,9 @@ export default function OrganaizerApp() {
             <span className="font-medium tracking-tight text-lg">organ<span className="text-primary">AI</span>zer</span>
           </div>
           <label className="flex items-center gap-1 text-xs cursor-pointer text-ink-mute">
-            <input 
-              type="checkbox" 
-              checked={forceError} 
+            <input
+              type="checkbox"
+              checked={forceError}
               onChange={(e) => setForceError(e.target.checked)}
               className="rounded border-hairline text-primary focus:ring-primary"
             />
@@ -108,7 +175,7 @@ export default function OrganaizerApp() {
         </header>
 
         <main className="flex-1 flex flex-col relative overflow-y-auto scrollbar-none pb-28">
-          
+
           {/* --- UPLOAD STATE --- */}
           {appState === 'upload' && (
             <div className="p-6 flex flex-col gap-6 animate-oai-fade">
@@ -127,8 +194,8 @@ export default function OrganaizerApp() {
                       onClick={() => setSelectedGoal(goal.id)}
                       className={cn(
                         "w-full flex items-center justify-between p-4 rounded-xl border transition-all text-left",
-                        isSelected 
-                          ? "border-primary bg-primary/5 shadow-sm" 
+                        isSelected
+                          ? "border-primary bg-primary/5 shadow-sm"
                           : "border-hairline bg-canvas-soft hover:border-primary-subdued hover:bg-canvas"
                       )}
                     >
@@ -148,18 +215,18 @@ export default function OrganaizerApp() {
 
               {/* Photo Upload Area */}
               <div className="mt-2">
-                <input 
-                  type="file" 
-                  accept="image/jpeg, image/png, image/webp" 
-                  ref={fileInputRef} 
-                  onChange={handleFileUpload} 
-                  className="hidden" 
+                <input
+                  type="file"
+                  accept="image/jpeg, image/png, image/webp"
+                  ref={fileInputRef}
+                  onChange={handleFileUpload}
+                  className="hidden"
                   id="photo-upload"
                 />
-                
+
                 <div className="relative rounded-2xl overflow-hidden aspect-[4/3] border border-hairline cursor-pointer" onClick={() => fileInputRef.current?.click()}>
                   <img src={uploadedImage || DEFAULT_IMAGE} alt="Space to analyze" className="w-full h-full object-cover" />
-                  
+
                   {!uploadedImage && (
                     <div className="absolute top-3 left-3 bg-brand-dark-900/80 backdrop-blur-sm text-white text-xs font-semibold px-2.5 py-1 rounded-md shadow-sm">
                       Sample photo
@@ -169,15 +236,15 @@ export default function OrganaizerApp() {
 
                 {/* Persistent Mobile-First Upload Controls */}
                 <div className="flex items-center justify-center gap-4 mt-1">
-                  <button 
+                  <button
                     onClick={() => fileInputRef.current?.click()}
                     className="px-4 py-2 bg-canvas-soft border border-hairline text-ink rounded-full font-medium text-sm flex items-center gap-2 shadow-sm hover:bg-canvas transition-colors"
                   >
                     <ImageIcon className="w-4 h-4" /> Replace Photo
                   </button>
                   {uploadedImage && (
-                    <button 
-                      onClick={() => setUploadedImage(null)}
+                    <button
+                      onClick={() => { setUploadedImage(null); setUploadedFile(null); }}
                       className="text-primary-soft text-sm font-medium underline"
                     >
                       Use sample
@@ -219,15 +286,21 @@ export default function OrganaizerApp() {
           )}
 
           {/* --- RESULT STATE --- */}
-          {appState === 'result' && (
+          {appState === 'result' && analysis && (
             <div className="flex flex-col animate-oai-fade">
-              
+
               {/* Annotated Image */}
               <div className="relative aspect-[4/3] bg-ink">
-                <img src={displayImage} alt="Analyzed workspace" className="w-full h-full object-cover" />
-                
+                {/* Use API imageUrl when available, fall back to local preview to avoid flicker */}
+                <img
+                  src={analysis.imageUrl || displayImage}
+                  alt="Analyzed workspace"
+                  className="w-full h-full object-cover"
+                  onError={(e) => { (e.currentTarget as HTMLImageElement).src = displayImage; }}
+                />
+
                 {/* Dashed Box Markers */}
-                {mockZones.map(z => {
+                {zones.map(z => {
                   const isActive = activeZoneId === z.id;
                   return (
                     <button
@@ -238,9 +311,9 @@ export default function OrganaizerApp() {
                         "absolute border-2 transition-all animate-oai-pin group flex items-start justify-start p-1",
                         isActive ? "border-primary bg-primary/20 z-20 shadow-[0_0_15px_rgba(83,58,253,0.4)]" : "border-white border-dashed bg-black/10 hover:bg-white/20 z-10"
                       )}
-                      style={{ 
-                        left: `${z.box?.x}%`, top: `${z.box?.y}%`, 
-                        width: `${z.box?.width}%`, height: `${z.box?.height}%` 
+                      style={{
+                        left: `${z.box?.x ?? 10}%`, top: `${z.box?.y ?? 10}%`,
+                        width: `${z.box?.width ?? 20}%`, height: `${z.box?.height ?? 20}%`
                       }}
                     >
                       <span className={cn(
@@ -255,15 +328,15 @@ export default function OrganaizerApp() {
               </div>
 
               <div className="p-6 flex flex-col gap-8 -mt-4 relative z-20">
-                
+
                 {/* Summary Dark Card */}
                 <div className="bg-brand-dark-900 text-white rounded-2xl p-5 shadow-lg flex justify-between items-center">
                   <div>
                     <h2 className="text-xl font-bold mb-1">Space Analyzed</h2>
-                    <p className="text-primary-subdued text-sm">Found {mockZones.length} zones to improve your {GOALS.find(g => g.id === selectedGoal)?.label?.toLowerCase()}.</p>
+                    <p className="text-primary-subdued text-sm">Found {zones.length} zones to improve your {GOALS.find(g => g.id === selectedGoal)?.label?.toLowerCase()}.</p>
                   </div>
                   <div className="w-12 h-12 rounded-full border-4 border-primary-soft flex items-center justify-center text-lg font-bold bg-primary-deep shrink-0">
-                    {mockZones.length}
+                    {zones.length}
                   </div>
                 </div>
 
@@ -271,7 +344,7 @@ export default function OrganaizerApp() {
                 {activeZoneId && (
                   <div className="bg-canvas border border-primary/30 shadow-[0_4px_20px_-4px_rgba(83,58,253,0.15)] rounded-2xl p-5 animate-oai-fade">
                     {(() => {
-                      const activeZone = mockZones.find(z => z.id === activeZoneId);
+                      const activeZone = zones.find(z => z.id === activeZoneId);
                       if (!activeZone) return null;
                       const pColor = PRIORITY_COLORS[activeZone.priority];
                       return (
@@ -299,10 +372,10 @@ export default function OrganaizerApp() {
                 <div className="space-y-4">
                   <h3 className="font-semibold text-lg border-b border-hairline pb-2">All Suggestions</h3>
                   <div className="flex flex-col gap-3">
-                    {[...mockZones].sort((a, b) => PRIORITY_SORT_ORDER[b.priority] - PRIORITY_SORT_ORDER[a.priority]).map(z => {
+                    {[...zones].sort((a, b) => PRIORITY_SORT_ORDER[b.priority] - PRIORITY_SORT_ORDER[a.priority]).map(z => {
                       const pColor = PRIORITY_COLORS[z.priority];
                       return (
-                        <button 
+                        <button
                           key={z.id}
                           onClick={() => setActiveZoneId(z.id)}
                           className="w-full text-left p-4 rounded-xl border border-hairline bg-canvas hover:border-primary/40 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
@@ -315,7 +388,7 @@ export default function OrganaizerApp() {
                           </div>
                           <p className="text-sm text-ink-secondary">{z.suggestion}</p>
                         </button>
-                      )
+                      );
                     })}
                   </div>
                 </div>
@@ -324,15 +397,16 @@ export default function OrganaizerApp() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between border-b border-hairline pb-2">
                     <h3 className="font-semibold text-lg">Action Plan</h3>
-                    <span className="text-sm font-medium text-ink-mute">{completedTasks.size} of {mockChecklist.length} done</span>
+                    <span className="text-sm font-medium text-ink-mute">{completedTasks.size} of {checklist.length} done</span>
                   </div>
                   <div className="space-y-2">
-                    {mockChecklist.map(task => {
-                      const isDone = completedTasks.has(task.id);
+                    {checklist.map((text, idx) => {
+                      const key = String(idx);
+                      const isDone = completedTasks.has(key);
                       return (
-                        <button 
-                          key={task.id}
-                          onClick={() => toggleTask(task.id)}
+                        <button
+                          key={key}
+                          onClick={() => toggleTask(idx)}
                           className={cn(
                             "w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all",
                             isDone ? "bg-canvas-soft border-hairline opacity-60" : "bg-canvas border-hairline hover:border-primary-subdued"
@@ -344,7 +418,7 @@ export default function OrganaizerApp() {
                           )}>
                             <CheckCircle2 className="w-4 h-4" />
                           </div>
-                          <span className={cn("text-sm font-medium", isDone ? "line-through text-ink-mute" : "text-ink")}>{task.text}</span>
+                          <span className={cn("text-sm font-medium", isDone ? "line-through text-ink-mute" : "text-ink")}>{text}</span>
                         </button>
                       );
                     })}
@@ -354,44 +428,65 @@ export default function OrganaizerApp() {
                 {/* Follow up Chat */}
                 <div className="mt-2 pt-6 border-t border-hairline">
                   <h4 className="text-sm font-medium mb-3">Ask organ<span className="text-primary">AI</span>zer</h4>
-                  
-                  {chatTurn && (
+
+                  {/* Render all chat turns */}
+                  {chatTurns.length > 0 && (
                     <div className="mb-4 space-y-4 animate-oai-fade">
-                      <div className="flex justify-end">
-                        <div className="bg-primary text-white px-4 py-2 rounded-2xl rounded-tr-sm text-sm max-w-[85%] shadow-sm">
-                          {chatTurn.q}
+                      {chatTurns.map(turn => (
+                        <div key={turn.id} className="space-y-3">
+                          <div className="flex justify-end">
+                            <div className="bg-primary text-white px-4 py-2 rounded-2xl rounded-tr-sm text-sm max-w-[85%] shadow-sm">
+                              {turn.question}
+                            </div>
+                          </div>
+                          <div className="flex justify-start">
+                            <div className="bg-canvas-soft border border-hairline text-ink px-4 py-3 rounded-2xl rounded-tl-sm text-sm max-w-[90%] shadow-sm leading-relaxed">
+                              {turn.answer}
+                              {turn.safetyNote && (
+                                <p className="mt-2 text-xs text-ruby/80 border-t border-hairline pt-2">{turn.safetyNote}</p>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex justify-start">
-                        <div className="bg-canvas-soft border border-hairline text-ink px-4 py-3 rounded-2xl rounded-tl-sm text-sm max-w-[90%] shadow-sm leading-relaxed">
-                          {chatTurn.a}
-                        </div>
-                      </div>
+                      ))}
                     </div>
                   )}
 
-                  {!chatTurn && (
+                  {/* Suggestion chips — show when no turns yet */}
+                  {chatTurns.length === 0 && !chatPending && followUpSuggestions.length > 0 && (
                     <div className="flex gap-2 overflow-x-auto pb-3 scrollbar-none">
-                      <button onClick={(e) => handleChatSubmit(e, "How long will this take?")} className="whitespace-nowrap px-4 py-2 rounded-full bg-canvas border border-hairline text-sm text-ink-secondary hover:border-primary hover:text-primary transition-colors shadow-sm">
-                        How long will this take?
-                      </button>
-                      <button onClick={(e) => handleChatSubmit(e, "Recommend storage bins")} className="whitespace-nowrap px-4 py-2 rounded-full bg-canvas border border-hairline text-sm text-ink-secondary hover:border-primary hover:text-primary transition-colors shadow-sm">
-                        Recommend storage bins
-                      </button>
+                      {followUpSuggestions.map(suggestion => (
+                        <button
+                          key={suggestion}
+                          onClick={(e) => handleChatSubmit(e, suggestion)}
+                          className="whitespace-nowrap px-4 py-2 rounded-full bg-canvas border border-hairline text-sm text-ink-secondary hover:border-primary hover:text-primary transition-colors shadow-sm"
+                        >
+                          {suggestion}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {chatPending && (
+                    <div className="mb-4 flex justify-start animate-oai-fade">
+                      <div className="bg-canvas-soft border border-hairline px-4 py-3 rounded-2xl rounded-tl-sm text-sm max-w-[90%] shadow-sm flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-primary animate-ping" />
+                        <span className="text-ink-mute text-xs">Thinking...</span>
+                      </div>
                     </div>
                   )}
 
                   <form onSubmit={handleChatSubmit} className="relative">
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={chatInput}
                       onChange={e => setChatInput(e.target.value)}
-                      placeholder={chatTurn ? "Ask another question..." : "Type a question..."}
+                      placeholder={chatTurns.length > 0 ? "Ask another question..." : "Type a question..."}
                       className="w-full bg-canvas border border-hairline-input rounded-xl py-3 pl-4 pr-12 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-sm"
                     />
-                    <button 
+                    <button
                       type="submit"
-                      disabled={!chatInput.trim()}
+                      disabled={!chatInput.trim() || chatPending}
                       className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-white bg-primary disabled:bg-primary-subdued disabled:text-primary-deep rounded-lg transition-colors"
                     >
                       <ArrowRight className="w-4 h-4" />
@@ -409,10 +504,15 @@ export default function OrganaizerApp() {
                 <AlertTriangle className="w-10 h-10 text-ruby" />
               </div>
               <h2 className="text-2xl font-bold mb-3 text-ink">Couldn't analyze this photo</h2>
-              <p className="text-ink-mute mb-8 leading-relaxed">
+              <p className="text-ink-mute mb-4 leading-relaxed">
                 I could not confidently analyze this image. Try a clearer photo with better lighting and more of the space visible.
               </p>
-              <button 
+              {errorMsg && (
+                <p className="text-xs text-ink-mute mb-6 font-mono bg-canvas-soft px-3 py-2 rounded-lg max-w-xs break-words">
+                  {errorMsg}
+                </p>
+              )}
+              <button
                 onClick={resetApp}
                 className="flex items-center gap-2 px-6 py-3 rounded-full bg-ink text-white font-medium hover:bg-ink-secondary transition-colors"
               >
@@ -428,15 +528,15 @@ export default function OrganaizerApp() {
         {(appState === 'upload' || appState === 'result') && (
           <div className="sticky bottom-0 z-40 bg-canvas/90 backdrop-blur-md border-t border-hairline p-4">
             {appState === 'upload' ? (
-              <button 
-                onClick={simulateUpload}
+              <button
+                onClick={() => { void handleAnalyze(); }}
                 disabled={!selectedGoal}
                 className="w-full py-4 rounded-xl bg-primary text-white font-bold text-lg shadow-lg shadow-primary/25 disabled:bg-primary-subdued disabled:shadow-none disabled:cursor-not-allowed hover:bg-primary-press transition-all active:translate-y-0"
               >
                 {selectedGoal ? "Analyze Space" : "Choose a goal first"}
               </button>
             ) : (
-              <button 
+              <button
                 onClick={resetApp}
                 className="w-full py-3.5 rounded-xl border-2 border-hairline-input text-ink font-semibold flex items-center justify-center gap-2 hover:bg-canvas-soft hover:border-ink transition-colors"
               >
