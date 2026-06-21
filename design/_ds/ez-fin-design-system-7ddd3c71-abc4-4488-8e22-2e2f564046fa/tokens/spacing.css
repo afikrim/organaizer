@@ -1,0 +1,31 @@
+/* Ez Fin — Spacing, radius & elevation tokens. 8px base. */
+:root {
+  /* ---- Spacing scale ---- */
+  --space-xxs: 2px;
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-xxl: 32px;
+  --space-huge: 64px;
+
+  /* Section & card rhythm */
+  --section-pad: 80px;       /* marketing surfaces 64–96px */
+  --section-pad-tight: 40px; /* dashboard / product surfaces */
+  --card-pad: 32px;          /* feature cards */
+  --card-pad-mockup: 24px;   /* dashboard mockups */
+  --container-max: 1200px;
+
+  /* ---- Border radius ---- */
+  --radius-xs: 4px;     /* hairline tags, table chrome */
+  --radius-sm: 6px;     /* form inputs */
+  --radius-md: 8px;     /* compact cards, alerts */
+  --radius-lg: 12px;    /* pricing / feature cards */
+  --radius-xl: 16px;    /* dashboard mockup chrome */
+  --radius-pill: 9999px;/* all buttons, tag pills */
+
+  /* ---- Elevation (navy-tinted shadows) ---- */
+  --elevation-1: rgba(0, 55, 112, 0.08) 0 1px 3px;
+  --elevation-2: rgba(0, 55, 112, 0.08) 0 8px 24px, rgba(0, 55, 112, 0.04) 0 2px 6px;
+}

@@ -1,0 +1,55 @@
+/* Ez Fin — Color tokens
+ * Deep navy ink, electric indigo primary, gradient-mesh accents.
+ * Base values + semantic aliases. */
+:root {
+  /* ---- Brand & primary ---- */
+  --primary: #533afd;              /* signature CTA indigo */
+  --primary-deep: #4434d4;         /* gradient mid-stop / warmer press */
+  --primary-press: #2e2b8c;        /* pressed state */
+  --primary-soft: #665efd;         /* product-UI accent, chart highlight */
+  --primary-subdued: #b9b9f9;      /* pale indigo tag fill */
+  --brand-dark-900: #1c1e54;       /* featured tier / dashboard chrome */
+
+  /* ---- Gradient-mesh accents (never buttons) ---- */
+  --ruby: #ea2261;
+  --magenta: #f96bee;
+  --lemon: #9b6829;
+
+  /* ---- Surfaces ---- */
+  --canvas: #ffffff;
+  --canvas-soft: #f6f9fc;          /* cool off-white feature band */
+  --canvas-cream: #f5e9d4;         /* warm interlude band */
+  --hairline: #e3e8ee;             /* 1px borders, cards & tables */
+  --hairline-input: #a8c3de;       /* cooler hairline for inputs */
+
+  /* ---- Text / ink ---- */
+  --ink: #0d253d;                  /* default body text — deep navy */
+  --ink-secondary: #273951;        /* secondary text on white */
+  --ink-mute: #64748d;             /* helper, captions, labels */
+  --ink-mute-2: #61718a;           /* nav muted text */
+  --on-primary: #ffffff;           /* text on indigo / dark surfaces */
+
+  /* ---- Shadow source (navy-tinted) ---- */
+  --shadow-blue: #003770;
+
+  /* ---- Semantic aliases ---- */
+  --text-primary: var(--ink);
+  --text-secondary: var(--ink-secondary);
+  --text-muted: var(--ink-mute);
+  --text-link: var(--primary);
+  --text-on-dark: var(--on-primary);
+
+  --surface-page: var(--canvas);
+  --surface-soft: var(--canvas-soft);
+  --surface-cream: var(--canvas-cream);
+  --surface-dark: var(--brand-dark-900);
+
+  --border-default: var(--hairline);
+  --border-input: var(--hairline-input);
+  --border-focus: var(--primary);
+
+  --action-primary: var(--primary);
+  --action-primary-press: var(--primary-press);
+  --tag-bg: var(--primary-subdued);
+  --tag-text: var(--primary-deep);
+}

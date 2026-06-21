@@ -1,0 +1,16 @@
+/* Ez Fin — Webfonts.
+ * Sohne (Klim Type Foundry) is proprietary and cannot be shipped.
+ * Inter @ weight 300 with ss01 + negative tracking is the closest
+ * open-source analogue and is used as the brand substitute.
+ * >>> Replace with licensed Sohne (sohne-var) for full brand fidelity. <<< */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+
+:root {
+  --font-display: 'Inter', 'Sohne', 'SF Pro Display', system-ui, -apple-system, sans-serif;
+  --font-body: 'Inter', 'Sohne', 'SF Pro Display', system-ui, -apple-system, sans-serif;
+}
+
+/* ss01 globally — part of the brand's typographic signature */
+html {
+  font-feature-settings: "ss01";
+}

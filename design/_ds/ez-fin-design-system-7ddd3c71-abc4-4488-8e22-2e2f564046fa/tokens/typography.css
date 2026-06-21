@@ -1,0 +1,56 @@
+/* Ez Fin — Typography scale.
+ * Sohne thin (weight 300) with negative tracking is the brand signature.
+ * Each role exposes size / weight / line-height / tracking / feature tokens
+ * plus a ready-to-apply shorthand-ish set of vars. */
+:root {
+  /* Display tier — always weight 300, negative tracking */
+  --type-display-xxl-size: 56px;  --type-display-xxl-lh: 1.03; --type-display-xxl-ls: -1.4px;
+  --type-display-xl-size: 48px;   --type-display-xl-lh: 1.15;  --type-display-xl-ls: -0.96px;
+  --type-display-lg-size: 32px;   --type-display-lg-lh: 1.1;   --type-display-lg-ls: -0.64px;
+  --type-display-md-size: 26px;   --type-display-md-lh: 1.12;  --type-display-md-ls: -0.26px;
+
+  /* Headings */
+  --type-heading-lg-size: 22px;   --type-heading-lg-lh: 1.1;   --type-heading-lg-ls: -0.22px;
+  --type-heading-md-size: 20px;   --type-heading-md-lh: 1.4;   --type-heading-md-ls: -0.2px;
+  --type-heading-sm-size: 18px;   --type-heading-sm-lh: 1.4;   --type-heading-sm-ls: 0;
+
+  /* Body */
+  --type-body-lg-size: 16px;      --type-body-lg-lh: 1.4;      --type-body-lg-ls: 0;
+  --type-body-md-size: 15px;      --type-body-md-lh: 1.4;      --type-body-md-ls: 0;
+  --type-body-tabular-size: 14px; --type-body-tabular-lh: 1.4; --type-body-tabular-ls: -0.42px;
+
+  /* Buttons (weight 400) */
+  --type-button-md-size: 16px;    --type-button-md-lh: 1.0;    --type-button-md-ls: 0;
+  --type-button-sm-size: 14px;    --type-button-sm-lh: 1.0;    --type-button-sm-ls: 0;
+
+  /* Fine print */
+  --type-caption-size: 13px;      --type-caption-lh: 1.4;      --type-caption-ls: -0.39px;
+  --type-micro-size: 11px;        --type-micro-lh: 1.4;        --type-micro-ls: 0;
+  --type-micro-cap-size: 10px;    --type-micro-cap-lh: 1.15;   --type-micro-cap-ls: 0.1px;
+
+  /* Weights */
+  --weight-thin: 300;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+}
+
+/* ---- Role utility classes ---- */
+.type-display-xxl { font-family: var(--font-display); font-weight: 300; font-size: var(--type-display-xxl-size); line-height: var(--type-display-xxl-lh); letter-spacing: var(--type-display-xxl-ls); }
+.type-display-xl  { font-family: var(--font-display); font-weight: 300; font-size: var(--type-display-xl-size);  line-height: var(--type-display-xl-lh);  letter-spacing: var(--type-display-xl-ls); }
+.type-display-lg  { font-family: var(--font-display); font-weight: 300; font-size: var(--type-display-lg-size);  line-height: var(--type-display-lg-lh);  letter-spacing: var(--type-display-lg-ls); }
+.type-display-md  { font-family: var(--font-display); font-weight: 300; font-size: var(--type-display-md-size);  line-height: var(--type-display-md-lh);  letter-spacing: var(--type-display-md-ls); }
+.type-heading-lg  { font-family: var(--font-display); font-weight: 300; font-size: var(--type-heading-lg-size);  line-height: var(--type-heading-lg-lh);  letter-spacing: var(--type-heading-lg-ls); }
+.type-heading-md  { font-family: var(--font-display); font-weight: 300; font-size: var(--type-heading-md-size);  line-height: var(--type-heading-md-lh);  letter-spacing: var(--type-heading-md-ls); }
+.type-heading-sm  { font-family: var(--font-display); font-weight: 300; font-size: var(--type-heading-sm-size);  line-height: var(--type-heading-sm-lh);  letter-spacing: var(--type-heading-sm-ls); }
+.type-body-lg     { font-family: var(--font-body); font-weight: 300; font-size: var(--type-body-lg-size); line-height: var(--type-body-lg-lh); letter-spacing: var(--type-body-lg-ls); }
+.type-body-md     { font-family: var(--font-body); font-weight: 300; font-size: var(--type-body-md-size); line-height: var(--type-body-md-lh); letter-spacing: var(--type-body-md-ls); }
+.type-body-tabular { font-family: var(--font-body); font-weight: 300; font-size: var(--type-body-tabular-size); line-height: var(--type-body-tabular-lh); letter-spacing: var(--type-body-tabular-ls); font-feature-settings: "tnum"; font-variant-numeric: tabular-nums; }
+.type-button-md   { font-family: var(--font-display); font-weight: 400; font-size: var(--type-button-md-size); line-height: var(--type-button-md-lh); letter-spacing: var(--type-button-md-ls); }
+.type-button-sm   { font-family: var(--font-display); font-weight: 400; font-size: var(--type-button-sm-size); line-height: var(--type-button-sm-lh); letter-spacing: var(--type-button-sm-ls); }
+.type-caption     { font-family: var(--font-body); font-weight: 400; font-size: var(--type-caption-size); line-height: var(--type-caption-lh); letter-spacing: var(--type-caption-ls); font-feature-settings: "tnum"; font-variant-numeric: tabular-nums; }
+.type-micro       { font-family: var(--font-body); font-weight: 300; font-size: var(--type-micro-size); line-height: var(--type-micro-lh); letter-spacing: var(--type-micro-ls); }
+.type-micro-cap   { font-family: var(--font-display); font-weight: 400; font-size: var(--type-micro-cap-size); line-height: var(--type-micro-cap-lh); letter-spacing: var(--type-micro-cap-ls); text-transform: uppercase; }
+
+/* tabular figures helper for any money / numeric cell */
+.tnum { font-feature-settings: "tnum"; font-variant-numeric: tabular-nums; }

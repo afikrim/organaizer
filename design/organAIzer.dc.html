@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/ez-fin-design-system-7ddd3c71-abc4-4488-8e22-2e2f564046fa/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/ez-fin-design-system-7ddd3c71-abc4-4488-8e22-2e2f564046fa/tokens/colors.css">
+<link rel="stylesheet" href="_ds/ez-fin-design-system-7ddd3c71-abc4-4488-8e22-2e2f564046fa/tokens/typography.css">
+<link rel="stylesheet" href="_ds/ez-fin-design-system-7ddd3c71-abc4-4488-8e22-2e2f564046fa/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/ez-fin-design-system-7ddd3c71-abc4-4488-8e22-2e2f564046fa/styles.css">
+<script src="_ds/ez-fin-design-system-7ddd3c71-abc4-4488-8e22-2e2f564046fa/_ds_bundle.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  html,body{margin:0;padding:0;background:#fff;}
+  *{box-sizing:border-box;}
+  ::selection{background:rgba(83,58,253,0.16);}
+  .oai-scroll{scrollbar-width:thin;}
+  .oai-scroll::-webkit-scrollbar{width:0;height:0;}
+  @keyframes oaiScan{0%{transform:translateY(-10%);opacity:0;}15%{opacity:1;}85%{opacity:1;}100%{transform:translateY(560%);opacity:0;}}
+  @keyframes oaiPulse{0%,100%{opacity:1;}50%{opacity:.45;}}
+  @keyframes oaiPin{0%{transform:scale(0.4);opacity:0;}60%{transform:scale(1.08);}100%{transform:scale(1);opacity:1;}}
+  @keyframes oaiFade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+  .oai-pin{animation:oaiPin .35s cubic-bezier(.2,.9,.3,1.3) both;}
+  .oai-fade{animation:oaiFade .4s ease both;}
+  .oai-skel{background:linear-gradient(90deg,#eef2f7 25%,#e3e8ee 37%,#eef2f7 63%);background-size:400% 100%;animation:oaiPulse 1.2s ease-in-out infinite;border-radius:8px;}
+  [data-lucide]{display:inline-flex;}
+</style>
+</helmet>
+
+<div style="font-family:var(--font-body); color:var(--ink); -webkit-font-smoothing:antialiased; min-height:100vh;">
+
+<!-- ============================ LANDING ============================ -->
+<sc-if value="{{ isLanding }}" hint-placeholder-val="{{ true }}">
+<div class="oai-fade">
+
+  <!-- nav -->
+  <div style="position:sticky; top:0; z-index:40; background:rgba(255,255,255,0.82); backdrop-filter:blur(12px); border-bottom:1px solid var(--hairline);">
+    <div style="max-width:1180px; margin:0 auto; padding:16px 28px; display:flex; align-items:center; justify-content:space-between; gap:24px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <img src="assets/logo-mark-indigo.png" alt="" style="height:26px; width:auto;">
+        <span class="type-heading-sm" style="font-weight:500; letter-spacing:-0.3px;">organ<span style="color:var(--primary);">AI</span>zer</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:30px;">
+        <span class="type-body-md" style="color:var(--ink-mute-2);">How it works</span>
+        <span class="type-body-md" style="color:var(--ink-mute-2);">Use cases</span>
+        <span class="type-body-md" style="color:var(--ink-mute-2);">Example</span>
+        <button onClick="{{ goApp }}" style="border:none; cursor:pointer; background:var(--primary); color:#fff; font-family:var(--font-display); font-size:15px; padding:9px 18px; border-radius:9999px;">Try organAIzer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- hero -->
+  <div style="position:relative; overflow:hidden;">
+    <div style="position:absolute; top:0; left:0; right:0; height:560px; background-image:url('assets/gradient-mesh.png'); background-size:cover; background-position:center top; opacity:0.9;"></div>
+    <div style="position:absolute; top:480px; left:0; right:0; height:200px; background:linear-gradient(180deg, rgba(255,255,255,0) 0%, #fff 100%);"></div>
+    <div style="position:relative; max-width:1180px; margin:0 auto; padding:72px 28px 40px; display:grid; grid-template-columns:1.05fr 0.95fr; gap:48px; align-items:center;">
+      <div>
+        <span style="display:inline-flex; align-items:center; gap:6px; background:var(--primary-subdued); color:var(--primary-deep); font-family:var(--font-display); font-size:10px; letter-spacing:0.1em; text-transform:uppercase; padding:5px 11px; border-radius:9999px;">AI space organizer</span>
+        <h1 class="type-display-xxl" style="margin:20px 0 0; max-width:13ch;">Organize any messy space from a photo.</h1>
+        <p class="type-body-lg" style="color:var(--ink-secondary); margin:20px 0 0; max-width:46ch;">Upload a photo of your desk, bedroom, closet, or storage corner and get AI-powered suggestions to make it cleaner, safer, and more functional.</p>
+        <div style="display:flex; gap:12px; margin-top:30px;">
+          <button onClick="{{ goApp }}" style="border:none; cursor:pointer; background:var(--primary); color:#fff; font-family:var(--font-display); font-size:16px; padding:12px 24px; border-radius:9999px; display:inline-flex; align-items:center; gap:8px;">Try organAIzer <i data-lucide="arrow-right" style="width:17px;height:17px;"></i></button>
+          <button onClick="{{ goApp }}" style="cursor:pointer; background:#fff; color:var(--primary); border:1px solid var(--primary); font-family:var(--font-display); font-size:16px; padding:12px 22px; border-radius:9999px;">See how it works</button>
+        </div>
+        <div style="display:flex; gap:22px; margin-top:30px; color:var(--ink-mute);">
+          <span class="type-body-tabular">No sign-up</span>
+          <span class="type-body-tabular">·</span>
+          <span class="type-body-tabular">One photo</span>
+          <span class="type-body-tabular">·</span>
+          <span class="type-body-tabular">Works on mobile</span>
+        </div>
+      </div>
+      <!-- hero phone mockup -->
+      <div style="display:flex; justify-content:center;">
+        <div style="width:288px; border-radius:36px; background:#fff; box-shadow:0 30px 60px rgba(0,55,112,0.18), 0 2px 6px rgba(0,55,112,0.06); padding:14px; border:1px solid rgba(13,37,61,0.06);">
+          <div style="display:flex; align-items:center; gap:7px; padding:2px 4px 12px;">
+            <img src="assets/logo-mark-indigo.png" alt="" style="height:16px;">
+            <span class="type-body-tabular" style="font-weight:500;">Analysis result</span>
+            <span style="margin-left:auto; background:rgba(31,138,91,0.12); color:#1f8a5b; font-size:9px; letter-spacing:0.08em; text-transform:uppercase; font-family:var(--font-display); padding:3px 7px; border-radius:9999px;">Done</span>
+          </div>
+          {{ heroPhoto }}
+          <div style="margin-top:10px; border:1px solid var(--hairline); border-radius:12px; padding:11px 12px;">
+            <div style="display:flex; align-items:center; gap:7px;">
+              <span style="width:7px;height:7px;border-radius:50%;background:#ea2261;"></span>
+              <span class="type-body-tabular" style="font-weight:500;">Cable mess</span>
+              <span style="margin-left:auto; color:#ea2261; font-size:10px; font-family:var(--font-display); text-transform:uppercase; letter-spacing:0.06em;">High</span>
+            </div>
+            <p class="type-caption" style="color:var(--ink-mute); margin:7px 0 0;">Route cables behind the desk and group them with clips.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- problem -->
+  <div style="background:var(--canvas-soft); border-top:1px solid var(--hairline); border-bottom:1px solid var(--hairline);">
+    <div style="max-width:880px; margin:0 auto; padding:72px 28px; text-align:center;">
+      <span class="type-micro-cap" style="color:var(--primary-deep);">The problem</span>
+      <p class="type-display-lg" style="margin:16px 0 0; color:var(--ink);">Your space feels messy — but knowing where to start is the hard part.</p>
+      <p class="type-body-lg" style="color:var(--ink-secondary); margin:18px 0 0;">organAIzer helps you identify clutter, unsafe placement, wasted space, and simple improvements from a single photo. No judgment, no expensive furniture — just practical next steps using what you already have.</p>
+    </div>
+  </div>
+
+  <!-- how it works -->
+  <div style="max-width:1180px; margin:0 auto; padding:84px 28px;">
+    <div style="text-align:center; margin-bottom:48px;">
+      <span class="type-micro-cap" style="color:var(--primary-deep);">How it works</span>
+      <h2 class="type-display-lg" style="margin:14px 0 0;">From a photo to a plan in four steps.</h2>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:20px;">
+      <sc-for list="{{ steps }}" as="s" hint-placeholder-count="4">
+        <div style="background:#fff; border:1px solid var(--hairline); border-radius:14px; padding:24px;">
+          <div style="width:42px; height:42px; border-radius:11px; background:var(--primary-subdued); color:var(--primary-deep); display:flex; align-items:center; justify-content:center;"><i data-lucide="{{ s.icon }}" style="width:21px;height:21px;"></i></div>
+          <div class="type-body-tabular" style="color:var(--ink-mute); margin-top:18px;">Step {{ s.n }}</div>
+          <div class="type-heading-sm" style="margin-top:4px; font-weight:500;">{{ s.title }}</div>
+          <p class="type-body-md" style="color:var(--ink-secondary); margin:8px 0 0;">{{ s.body }}</p>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- use cases -->
+  <div style="background:var(--canvas-soft); border-top:1px solid var(--hairline); border-bottom:1px solid var(--hairline);">
+    <div style="max-width:1180px; margin:0 auto; padding:72px 28px;">
+      <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:24px; flex-wrap:wrap; margin-bottom:32px;">
+        <div>
+          <span class="type-micro-cap" style="color:var(--primary-deep);">Use cases</span>
+          <h2 class="type-display-lg" style="margin:14px 0 0;">Not just desks.</h2>
+        </div>
+        <p class="type-body-md" style="color:var(--ink-secondary); max-width:38ch;">Any small or cluttered space where you want a cleaner, safer, more usable layout.</p>
+      </div>
+      <div style="display:flex; flex-wrap:wrap; gap:12px;">
+        <sc-for list="{{ useCases }}" as="u" hint-placeholder-count="7">
+          <div style="display:inline-flex; align-items:center; gap:9px; background:#fff; border:1px solid var(--hairline); border-radius:9999px; padding:11px 18px;">
+            <i data-lucide="{{ u.icon }}" style="width:17px;height:17px;color:var(--primary);"></i>
+            <span class="type-body-md">{{ u.label }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <!-- example result -->
+  <div style="max-width:1180px; margin:0 auto; padding:84px 28px; display:grid; grid-template-columns:0.9fr 1.1fr; gap:56px; align-items:center;">
+    <div>
+      <span class="type-micro-cap" style="color:var(--primary-deep);">Example result</span>
+      <h2 class="type-display-lg" style="margin:14px 0 0;">See what you'll get before you try.</h2>
+      <p class="type-body-lg" style="color:var(--ink-secondary); margin:18px 0 0;">Every analysis highlights problem zones on your photo and turns them into prioritized, practical suggestions — plus a short checklist you can act on right away.</p>
+      <button onClick="{{ goApp }}" style="margin-top:26px; border:none; cursor:pointer; background:var(--primary); color:#fff; font-family:var(--font-display); font-size:16px; padding:12px 24px; border-radius:9999px; display:inline-flex; align-items:center; gap:8px;">Analyze my space <i data-lucide="arrow-right" style="width:17px;height:17px;"></i></button>
+    </div>
+    <div style="background:var(--brand-dark-900); border-radius:18px; padding:24px; box-shadow:rgba(0,55,112,0.10) 0 8px 24px;">
+      <div style="display:flex; align-items:center; gap:8px; color:rgba(255,255,255,0.92);">
+        <i data-lucide="scan-search" style="width:18px;height:18px;color:var(--primary-soft);"></i>
+        <span class="type-body-md" style="font-weight:500;">Summary</span>
+      </div>
+      <p class="type-body-md" style="color:rgba(255,255,255,0.72); margin:8px 0 18px;">Your space is usable, but the main work area is crowded and cables are exposed.</p>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <sc-for list="{{ exampleCards }}" as="c" hint-placeholder-count="3">
+          <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:13px 15px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="width:8px;height:8px;border-radius:50%;background:{{ c.color }};"></span>
+              <span class="type-body-md" style="color:#fff; font-weight:500;">{{ c.label }}</span>
+              <span style="margin-left:auto; color:{{ c.color }}; font-size:10px; font-family:var(--font-display); text-transform:uppercase; letter-spacing:0.06em;">{{ c.tag }}</span>
+            </div>
+            <p class="type-caption" style="color:rgba(255,255,255,0.62); margin:7px 0 0;">{{ c.text }}</p>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <!-- final CTA -->
+  <div style="max-width:1180px; margin:0 auto 84px; padding:0 28px;">
+    <div style="position:relative; overflow:hidden; border-radius:22px; background:var(--brand-dark-900); padding:64px 48px; text-align:center;">
+      <div style="position:absolute; inset:0; background-image:url('assets/gradient-mesh.png'); background-size:cover; background-position:center; opacity:0.28;"></div>
+      <div style="position:relative;">
+        <h2 class="type-display-xl" style="color:#fff; margin:0; max-width:18ch; margin-inline:auto;">Take a photo. Get a cleaner space.</h2>
+        <p class="type-body-lg" style="color:rgba(255,255,255,0.74); margin:16px auto 0; max-width:50ch;">Your personal organizer, powered by AI. No sign-up required.</p>
+        <button onClick="{{ goApp }}" style="margin-top:28px; border:none; cursor:pointer; background:#fff; color:var(--primary); font-family:var(--font-display); font-size:16px; padding:13px 28px; border-radius:9999px; display:inline-flex; align-items:center; gap:8px;">Try organAIzer <i data-lucide="arrow-right" style="width:17px;height:17px;"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- footer -->
+  <div style="border-top:1px solid var(--hairline); background:#fff;">
+    <div style="max-width:1180px; margin:0 auto; padding:28px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+      <div style="display:flex; align-items:center; gap:9px;">
+        <img src="assets/logo-mark-indigo.png" alt="" style="height:20px;">
+        <span class="type-body-md" style="color:var(--ink-mute);">organAIzer — MVP demo</span>
+      </div>
+      <span class="type-caption" style="color:var(--ink-mute);">Your photo is used only to generate organization suggestions. Avoid uploading sensitive personal information.</span>
+    </div>
+  </div>
+
+</div>
+</sc-if>
+
+<!-- ============================ APP ============================ -->
+<sc-if value="{{ isApp }}" hint-placeholder-val="{{ true }}">
+<div class="oai-fade" style="min-height:100vh; background:var(--canvas-soft); display:flex; flex-direction:column; align-items:center; padding:28px 16px 48px;">
+
+  <div style="width:100%; max-width:402px; display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;">
+    <button onClick="{{ goLanding }}" style="display:inline-flex; align-items:center; gap:6px; background:none; border:none; cursor:pointer; color:var(--ink-mute); font-family:var(--font-body); font-size:14px;"><i data-lucide="chevron-left" style="width:16px;height:16px;"></i> Back to site</button>
+    <span class="type-caption" style="color:var(--ink-mute);">Live demo</span>
+  </div>
+
+  <!-- phone shell -->
+  <div style="width:402px; height:858px; border-radius:46px; background:#fff; position:relative; overflow:hidden; box-shadow:0 40px 80px rgba(0,55,112,0.18), 0 0 0 1px rgba(13,37,61,0.08); display:flex; flex-direction:column;">
+    <!-- dynamic island -->
+    <div style="position:absolute; top:11px; left:50%; transform:translateX(-50%); width:120px; height:34px; border-radius:22px; background:#0d253d; z-index:50;"></div>
+    <!-- status bar -->
+    <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 28px 8px; position:relative; z-index:20;">
+      <span style="font-family:-apple-system,system-ui; font-weight:600; font-size:15px; color:var(--ink);">9:41</span>
+      <span style="display:inline-flex; gap:6px; align-items:center;">
+        <i data-lucide="signal" style="width:16px;height:16px;color:var(--ink);"></i>
+        <i data-lucide="wifi" style="width:16px;height:16px;color:var(--ink);"></i>
+        <i data-lucide="battery-full" style="width:20px;height:20px;color:var(--ink);"></i>
+      </span>
+    </div>
+
+    <!-- app header -->
+    <div style="display:flex; align-items:center; gap:9px; padding:8px 20px 12px; border-bottom:1px solid var(--hairline);">
+      <sc-if value="{{ showBack }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ resetApp }}" style="background:none; border:none; cursor:pointer; padding:0; display:inline-flex; color:var(--ink);"><i data-lucide="arrow-left" style="width:20px;height:20px;"></i></button>
+      </sc-if>
+      <img src="assets/logo-mark-indigo.png" alt="" style="height:18px;">
+      <span class="type-heading-sm" style="font-weight:500;">organ<span style="color:var(--primary);">AI</span>zer</span>
+      <span style="margin-left:auto;" class="type-caption">{{ stepLabel }}</span>
+    </div>
+
+    <!-- scroll content -->
+    <div class="oai-scroll" style="flex:1; overflow:auto; padding:18px 18px 40px;">
+
+      <!-- ---- photo (upload / loading / result) ---- -->
+      <sc-if value="{{ showPhoto }}" hint-placeholder-val="{{ true }}">
+        <div style="position:relative; width:100%; aspect-ratio:4/3; border-radius:16px; overflow:hidden; border:1px solid var(--hairline); box-shadow:rgba(0,55,112,0.06) 0 1px 3px;">
+
+          <!-- illustration OR uploaded image -->
+          <sc-if value="{{ hasUpload }}" hint-placeholder-val="{{ false }}">
+            <img src="{{ imgSrc }}" alt="Uploaded space" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover;">
+          </sc-if>
+          <sc-if value="{{ noUpload }}" hint-placeholder-val="{{ true }}">
+            {{ illustration }}
+          </sc-if>
+
+          <!-- markers (result) -->
+          <sc-if value="{{ stResult }}" hint-placeholder-val="{{ false }}">
+            <sc-for list="{{ zones }}" as="z" hint-placeholder-count="4">
+              <button onClick="{{ z.onTap }}" class="oai-pin" style="position:absolute; left:{{ z.left }}; top:{{ z.top }}; width:{{ z.w }}; height:{{ z.h }}; border:2px dashed {{ z.color }}; background:{{ z.fill }}; border-radius:10px; cursor:pointer; padding:0; box-shadow:{{ z.glow }};">
+                <span style="position:absolute; top:-11px; left:-11px; width:24px; height:24px; border-radius:50%; background:{{ z.color }}; color:#fff; font-family:var(--font-display); font-size:13px; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,0.25);">{{ z.n }}</span>
+              </button>
+            </sc-for>
+          </sc-if>
+
+          <!-- scan overlay (loading) -->
+          <sc-if value="{{ stLoading }}" hint-placeholder-val="{{ false }}">
+            <div style="position:absolute; inset:0; background:rgba(28,30,84,0.32); backdrop-filter:blur(1px);"></div>
+            <div style="position:absolute; left:0; right:0; height:54px; background:linear-gradient(180deg, rgba(102,94,253,0) 0%, rgba(102,94,253,0.55) 100%); animation:oaiScan 1.6s ease-in-out infinite;"></div>
+            <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; color:#fff;">
+              <i data-lucide="scan-search" style="width:30px;height:30px;"></i>
+              <span class="type-body-md" style="font-weight:500;">Analyzing your space…</span>
+            </div>
+          </sc-if>
+
+          <!-- sample badge (upload) -->
+          <sc-if value="{{ showSampleBadge }}" hint-placeholder-val="{{ true }}">
+            <span style="position:absolute; top:10px; left:10px; background:rgba(13,37,61,0.72); color:#fff; font-family:var(--font-display); font-size:10px; letter-spacing:0.08em; text-transform:uppercase; padding:5px 9px; border-radius:9999px;">Sample photo</span>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <!-- ============ UPLOAD STEP ============ -->
+      <sc-if value="{{ stUpload }}" hint-placeholder-val="{{ true }}">
+        <div class="oai-fade">
+          <div style="display:flex; gap:10px; margin-top:12px;">
+            <label style="flex:1; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:8px; border:1px solid var(--primary); color:var(--primary); border-radius:9999px; padding:11px; font-family:var(--font-display); font-size:15px;">
+              <i data-lucide="camera" style="width:17px;height:17px;"></i> Replace photo
+              <input type="file" accept="image/*" onChange="{{ onFile }}" style="display:none;">
+            </label>
+            <sc-if value="{{ hasUpload }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ useSample }}" style="cursor:pointer; border:1px solid var(--hairline); background:#fff; color:var(--ink-secondary); border-radius:9999px; padding:11px 16px; font-family:var(--font-display); font-size:15px;">Use sample</button>
+            </sc-if>
+          </div>
+
+          <div style="margin-top:24px;">
+            <span class="type-micro-cap" style="color:var(--ink-mute);">Choose your goal</span>
+            <div style="display:flex; flex-direction:column; gap:9px; margin-top:12px;">
+              <sc-for list="{{ goalsView }}" as="g" hint-placeholder-count="5">
+                <button onClick="{{ g.onSelect }}" style="display:flex; align-items:center; gap:12px; width:100%; cursor:pointer; text-align:left; background:{{ g.bg }}; border:1.5px solid {{ g.border }}; border-radius:13px; padding:13px 15px; font-family:var(--font-body);">
+                  <span style="width:34px; height:34px; border-radius:9px; background:{{ g.iconBg }}; color:{{ g.iconColor }}; display:flex; align-items:center; justify-content:center; flex:none;"><i data-lucide="{{ g.icon }}" style="width:18px;height:18px;"></i></span>
+                  <span class="type-body-lg" style="color:{{ g.textColor }}; font-weight:500;">{{ g.label }}</span>
+                  <span style="margin-left:auto; color:{{ g.checkColor }};"><i data-lucide="{{ g.check }}" style="width:19px;height:19px;"></i></span>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="margin-top:22px; display:flex; gap:9px; align-items:flex-start; background:var(--canvas-soft); border:1px solid var(--hairline); border-radius:12px; padding:12px 14px;">
+            <i data-lucide="shield" style="width:16px;height:16px;color:var(--ink-mute); margin-top:1px; flex:none;"></i>
+            <span class="type-caption" style="color:var(--ink-mute);">Your photo is used only to generate suggestions. Avoid uploading sensitive personal information.</span>
+          </div>
+
+          <button onClick="{{ analyze }}" disabled="{{ analyzeDisabled }}" style="margin-top:18px; width:100%; cursor:{{ analyzeCursor }}; border:none; background:{{ analyzeBg }}; color:#fff; font-family:var(--font-display); font-size:16px; padding:14px; border-radius:9999px; display:inline-flex; align-items:center; justify-content:center; gap:8px;">
+            <i data-lucide="sparkles" style="width:18px;height:18px;"></i> {{ analyzeText }}
+          </button>
+          <button onClick="{{ analyzeBad }}" style="margin-top:10px; width:100%; cursor:pointer; background:none; border:none; color:var(--ink-mute); font-family:var(--font-body); font-size:13px; text-decoration:underline; text-underline-offset:3px;">Try a hard-to-read photo</button>
+        </div>
+      </sc-if>
+
+      <!-- ============ LOADING STEP ============ -->
+      <sc-if value="{{ stLoading }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top:18px; display:flex; flex-direction:column; gap:12px;">
+          <div class="oai-skel" style="height:54px;"></div>
+          <div class="oai-skel" style="height:78px;"></div>
+          <div class="oai-skel" style="height:78px;"></div>
+          <div class="oai-skel" style="height:78px; opacity:0.6;"></div>
+        </div>
+      </sc-if>
+
+      <!-- ============ RESULT STEP ============ -->
+      <sc-if value="{{ stResult }}" hint-placeholder-val="{{ false }}">
+        <div class="oai-fade">
+          <!-- summary -->
+          <div style="margin-top:16px; background:var(--brand-dark-900); border-radius:14px; padding:16px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <i data-lucide="scan-search" style="width:17px;height:17px;color:var(--primary-soft);"></i>
+              <span class="type-body-md" style="color:#fff; font-weight:500;">Summary</span>
+              <span style="margin-left:auto; background:rgba(255,255,255,0.10); color:rgba(255,255,255,0.85); font-family:var(--font-display); font-size:10px; letter-spacing:0.06em; text-transform:uppercase; padding:4px 9px; border-radius:9999px;">{{ zoneCount }} zones</span>
+            </div>
+            <p class="type-body-md" style="color:rgba(255,255,255,0.74); margin:9px 0 0;">{{ summary }}</p>
+          </div>
+
+          <!-- active zone detail -->
+          <sc-if value="{{ hasActive }}" hint-placeholder-val="{{ false }}">
+            <div class="oai-fade" style="margin-top:14px; border:1.5px solid {{ active.color }}; border-radius:14px; padding:15px; background:{{ active.fill }};">
+              <div style="display:flex; align-items:center; gap:9px;">
+                <span style="width:24px; height:24px; border-radius:50%; background:{{ active.color }}; color:#fff; font-family:var(--font-display); font-size:13px; display:flex; align-items:center; justify-content:center; flex:none;">{{ active.n }}</span>
+                <span class="type-heading-sm" style="font-weight:500;">{{ active.label }}</span>
+                <span style="margin-left:auto; color:{{ active.color }};" class="type-micro-cap">{{ active.tag }}</span>
+              </div>
+              <p class="type-body-md" style="color:var(--ink-secondary); margin:10px 0 0;">{{ active.issue }}</p>
+              <div style="display:flex; gap:7px; margin-top:10px; padding-top:10px; border-top:1px solid var(--hairline); align-items:flex-start;">
+                <i data-lucide="arrow-right" style="width:16px;height:16px;color:{{ active.color }}; margin-top:2px; flex:none;"></i>
+                <span class="type-body-md" style="color:var(--ink);">{{ active.suggestion }}</span>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- suggestion cards -->
+          <div style="margin-top:18px; display:flex; align-items:center; justify-content:space-between;">
+            <span class="type-heading-sm" style="font-weight:500;">Suggestions</span>
+            <span class="type-caption" style="color:var(--ink-mute);">Sorted by priority</span>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:10px; margin-top:12px;">
+            <sc-for list="{{ cardsView }}" as="c" hint-placeholder-count="4">
+              <button onClick="{{ c.onTap }}" style="text-align:left; cursor:pointer; background:#fff; border:1.5px solid {{ c.border }}; border-radius:13px; padding:14px; font-family:var(--font-body); display:block; width:100%;">
+                <div style="display:flex; align-items:center; gap:9px;">
+                  <span style="width:9px; height:9px; border-radius:50%; background:{{ c.color }}; flex:none;"></span>
+                  <span class="type-body-lg" style="font-weight:500;">{{ c.label }}</span>
+                  <span style="margin-left:auto; background:{{ c.tagBg }}; color:{{ c.color }};" class="type-micro-cap" >{{ c.tag }}</span>
+                </div>
+                <p class="type-body-md" style="color:var(--ink-mute); margin:9px 0 0;">{{ c.issue }}</p>
+                <div style="display:flex; gap:7px; margin-top:10px; align-items:flex-start;">
+                  <i data-lucide="corner-down-right" style="width:15px;height:15px;color:{{ c.color }}; margin-top:2px; flex:none;"></i>
+                  <span class="type-body-md" style="color:var(--ink-secondary);">{{ c.suggestion }}</span>
+                </div>
+              </button>
+            </sc-for>
+          </div>
+
+          <!-- checklist -->
+          <div style="margin-top:22px; background:var(--canvas-soft); border:1px solid var(--hairline); border-radius:14px; padding:16px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <i data-lucide="list-checks" style="width:18px;height:18px;color:var(--primary);"></i>
+              <span class="type-heading-sm" style="font-weight:500;">Action checklist</span>
+              <span style="margin-left:auto;" class="type-body-tabular">{{ doneCount }}/{{ totalCount }}</span>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:2px; margin-top:10px;">
+              <sc-for list="{{ checklistView }}" as="k" hint-placeholder-count="5">
+                <button onClick="{{ k.onToggle }}" style="display:flex; gap:11px; align-items:flex-start; cursor:pointer; background:none; border:none; text-align:left; padding:9px 2px; font-family:var(--font-body); width:100%;">
+                  <span style="width:21px; height:21px; border-radius:6px; border:1.5px solid {{ k.boxBorder }}; background:{{ k.boxBg }}; color:#fff; display:flex; align-items:center; justify-content:center; flex:none; margin-top:1px;"><i data-lucide="{{ k.icon }}" style="width:14px;height:14px;"></i></span>
+                  <span class="type-body-md" style="color:{{ k.textColor }}; text-decoration:{{ k.strike }};">{{ k.text }}</span>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+
+          <!-- follow up -->
+          <div style="margin-top:22px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <i data-lucide="message-circle" style="width:18px;height:18px;color:var(--primary);"></i>
+              <span class="type-heading-sm" style="font-weight:500;">Ask a follow-up</span>
+            </div>
+            <p class="type-caption" style="color:var(--ink-mute); margin:6px 0 0;">One question about how to organize this space.</p>
+
+            <sc-if value="{{ followAsked }}" hint-placeholder-val="{{ false }}">
+              <div class="oai-fade" style="margin-top:12px;">
+                <div style="background:var(--primary); color:#fff; border-radius:14px 14px 4px 14px; padding:11px 14px; margin-left:auto; max-width:88%; width:fit-content;">
+                  <span class="type-body-md">{{ followQ }}</span>
+                </div>
+                <div style="margin-top:10px; background:#fff; border:1px solid var(--hairline); border-radius:4px 14px 14px 14px; padding:13px 14px; display:flex; gap:9px; align-items:flex-start;">
+                  <img src="assets/logo-mark-indigo.png" alt="" style="height:16px; margin-top:2px; flex:none;">
+                  <span class="type-body-md" style="color:var(--ink-secondary);">{{ followAnswer }}</span>
+                </div>
+                <button onClick="{{ resetFollow }}" style="margin-top:10px; background:none; border:none; cursor:pointer; color:var(--primary); font-family:var(--font-display); font-size:14px;">Ask another</button>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ followOpen }}" hint-placeholder-val="{{ true }}">
+              <div style="margin-top:12px;">
+                <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+                  <sc-for list="{{ followChips }}" as="f" hint-placeholder-count="2">
+                    <button onClick="{{ f.onClick }}" style="cursor:pointer; background:var(--primary-subdued); color:var(--primary-deep); border:none; border-radius:9999px; padding:8px 13px; font-family:var(--font-body); font-size:13px;">{{ f.text }}</button>
+                  </sc-for>
+                </div>
+                <div style="display:flex; gap:8px;">
+                  <input value="{{ followQ }}" onInput="{{ onFollowInput }}" placeholder="Type your question…" style="flex:1; border:1px solid var(--hairline-input); border-radius:10px; padding:11px 13px; font-family:var(--font-body); font-size:15px; color:var(--ink); outline:none;">
+                  <button onClick="{{ submitFollow }}" style="border:none; cursor:pointer; background:var(--primary); color:#fff; border-radius:10px; padding:0 16px; display:inline-flex; align-items:center;"><i data-lucide="arrow-up" style="width:18px;height:18px;"></i></button>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+
+          <button onClick="{{ resetApp }}" style="margin-top:24px; width:100%; cursor:pointer; background:#fff; border:1px solid var(--primary); color:var(--primary); font-family:var(--font-display); font-size:15px; padding:13px; border-radius:9999px; display:inline-flex; align-items:center; justify-content:center; gap:8px;"><i data-lucide="rotate-ccw" style="width:16px;height:16px;"></i> Analyze another photo</button>
+        </div>
+      </sc-if>
+
+      <!-- ============ ERROR STEP ============ -->
+      <sc-if value="{{ stError }}" hint-placeholder-val="{{ false }}">
+        <div class="oai-fade" style="margin-top:40px; text-align:center; display:flex; flex-direction:column; align-items:center;">
+          <div style="width:64px; height:64px; border-radius:50%; background:rgba(234,34,97,0.10); color:#ea2261; display:flex; align-items:center; justify-content:center;"><i data-lucide="image-off" style="width:30px;height:30px;"></i></div>
+          <h3 class="type-heading-lg" style="margin:18px 0 0; font-weight:500;">Couldn't analyze this photo</h3>
+          <p class="type-body-md" style="color:var(--ink-secondary); margin:10px 0 0; max-width:30ch;">I could not confidently analyze this image. Try a clearer photo with better lighting and more of the space visible.</p>
+          <button onClick="{{ resetApp }}" style="margin-top:22px; cursor:pointer; border:none; background:var(--primary); color:#fff; font-family:var(--font-display); font-size:15px; padding:12px 24px; border-radius:9999px;">Try again</button>
+        </div>
+      </sc-if>
+
+    </div>
+
+    <!-- home indicator -->
+    <div style="position:absolute; bottom:0; left:0; right:0; height:26px; display:flex; justify-content:center; align-items:flex-end; padding-bottom:8px; pointer-events:none;">
+      <div style="width:130px; height:5px; border-radius:100px; background:rgba(13,37,61,0.22);"></div>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    view: 'landing',
+    step: 'upload',
+    goal: null,
+    imgSrc: null,
+    activeZone: null,
+    checks: [false, false, false, false, false],
+    followQ: '',
+    followAsked: false,
+    followAnswer: '',
+  };
+
+  PMETA = {
+    high:   { tag: 'High priority',   color: '#ea2261', fill: 'rgba(234,34,97,0.08)',  tagBg: 'rgba(234,34,97,0.10)' },
+    medium: { tag: 'Medium priority', color: '#9b6829', fill: 'rgba(155,104,41,0.09)', tagBg: 'rgba(155,104,41,0.12)' },
+    low:    { tag: 'Low priority',    color: '#533afd', fill: 'rgba(83,58,253,0.08)',  tagBg: 'rgba(83,58,253,0.10)' },
+  };
+
+  ZONES = [
+    { n: 1, label: 'Cable mess', priority: 'high', box: { x: 58, y: 64, w: 32, h: 26 },
+      issue: 'Several cables are exposed and crossing the main working area.',
+      suggestion: 'Route the cables behind the desk and group them with clips or ties.' },
+    { n: 2, label: 'Liquid near electronics', priority: 'high', box: { x: 28, y: 38, w: 16, h: 26 },
+      issue: 'A drink is sitting right beside your laptop and charger.',
+      suggestion: 'Move liquids to the far edge, away from electronics and cables.' },
+    { n: 3, label: 'Wasted corner', priority: 'medium', box: { x: 69, y: 7, w: 27, h: 25 },
+      issue: 'The back-right corner is empty and completely unused.',
+      suggestion: 'Use the back-right corner for a speaker or things you rarely reach for.' },
+    { n: 4, label: 'Hard to reach', priority: 'medium', box: { x: 3, y: 40, w: 20, h: 32 },
+      issue: 'Daily-use items are buried behind a pile on the far left.',
+      suggestion: "Keep daily items within arm's reach and move the pile aside." },
+  ];
+
+  CHECKLIST = [
+    'Clear the center area for work first.',
+    'Move liquids away from electronics.',
+    'Group cables behind the desk.',
+    'Use the back-right corner for rarely used items.',
+    "Keep daily-use items within arm's reach.",
+  ];
+
+  SUMMARY = 'Your desk is usable, but the main work area is crowded and several cables are exposed near a drink.';
+
+  GOALS = [
+    { id: 'cleaner',   label: 'Make it cleaner',     icon: 'sparkles' },
+    { id: 'safer',     label: 'Make it safer',       icon: 'shield-check' },
+    { id: 'storage',   label: 'Create more storage', icon: 'package' },
+    { id: 'work',      label: 'Improve work setup',  icon: 'monitor' },
+    { id: 'aesthetics',label: 'Improve aesthetics',  icon: 'palette' },
+  ];
+
+  componentDidMount() { this.icons(); }
+  componentDidUpdate() { this.icons(); }
+  icons() { if (window.lucide) { try { window.lucide.createIcons(); } catch (e) {} } }
+  componentWillUnmount() { clearTimeout(this._t); }
+
+  goApp = () => this.setState({ view: 'app' });
+  goLanding = () => this.setState({ view: 'landing' });
+
+  selectGoal = (id) => this.setState({ goal: id });
+  onFile = (e) => {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = (ev) => this.setState({ imgSrc: ev.target.result });
+    r.readAsDataURL(f);
+  };
+  useSample = () => this.setState({ imgSrc: null });
+
+  analyze = () => {
+    if (!this.state.goal) return;
+    this.setState({ step: 'loading' });
+    clearTimeout(this._t);
+    this._t = setTimeout(() => this.setState({ step: 'result' }), 1700);
+  };
+  analyzeBad = () => {
+    this.setState({ step: 'loading' });
+    clearTimeout(this._t);
+    this._t = setTimeout(() => this.setState({ step: 'error' }), 1500);
+  };
+  resetApp = () => this.setState({
+    step: 'upload', imgSrc: null, activeZone: null,
+    checks: [false, false, false, false, false],
+    followQ: '', followAsked: false, followAnswer: '',
+  });
+
+  tapZone = (n) => this.setState(s => ({ activeZone: s.activeZone === n ? null : n }));
+  toggleCheck = (i) => this.setState(s => {
+    const c = s.checks.slice(); c[i] = !c[i]; return { checks: c };
+  });
+
+  onFollowInput = (e) => this.setState({ followQ: e.target.value });
+  askFollow = (q) => {
+    const ql = (q || '').toLowerCase();
+    let a;
+    if (/speaker|right side|back-right|back right/.test(ql)) {
+      a = 'Yes, placing a speaker on the back-right side looks reasonable because it does not block your main work area. Avoid placing it near drinks or loose cables. If the speaker is large, keep it slightly behind the monitor line so your center workspace stays clear.';
+    } else if (/notebook|notes|book|paper/.test(ql)) {
+      a = 'Keep your notebook just to the left of the laptop where the clutter is now — clear that pile first so it stays within easy reach but off your main typing area.';
+    } else if (/plant|lamp|light/.test(ql)) {
+      a = 'The back-right corner is the best spot — it is currently wasted space and keeping it there frees up your working area without blocking the monitor.';
+    } else {
+      a = 'Based on your photo, keep daily-use items within arm\u2019s reach and push rarely-used things to the back-right corner. Avoid placing anything new near the exposed cables or your drink.';
+    }
+    this.setState({ followAsked: true, followAnswer: a, followQ: q });
+  };
+  submitFollow = () => { if (this.state.followQ.trim()) this.askFollow(this.state.followQ.trim()); };
+  resetFollow = () => this.setState({ followAsked: false, followQ: '', followAnswer: '' });
+
+  renderVals() {
+    const s = this.state;
+    const view = s.view;
+    const step = s.step;
+    const noUpload = !s.imgSrc;
+
+    // sorted zones (high first) for cards
+    const order = { high: 0, medium: 1, low: 2 };
+    const sorted = this.ZONES.slice().sort((a, b) => order[a.priority] - order[b.priority]);
+
+    const zones = this.ZONES.map(z => {
+      const m = this.PMETA[z.priority];
+      const act = s.activeZone === z.n;
+      return {
+        n: z.n,
+        left: z.box.x + '%', top: z.box.y + '%', w: z.box.w + '%', h: z.box.h + '%',
+        color: m.color,
+        fill: act ? m.color.replace('#', 'rgba(').slice(0) && 'rgba(0,0,0,0)' : 'rgba(0,0,0,0)',
+        glow: act ? '0 0 0 3px ' + m.fill + ', 0 6px 16px rgba(0,0,0,0.18)' : 'none',
+        onTap: () => this.tapZone(z.n),
+      };
+    });
+    // fill: use translucent fill when active
+    zones.forEach((zv, i) => {
+      const z = this.ZONES[i]; const m = this.PMETA[z.priority];
+      zv.fill = (s.activeZone === z.n) ? m.fill : 'rgba(255,255,255,0.04)';
+    });
+
+    const cardsView = sorted.map(z => {
+      const m = this.PMETA[z.priority];
+      const act = s.activeZone === z.n;
+      return {
+        label: z.label, issue: z.issue, suggestion: z.suggestion,
+        color: m.color, tag: m.tag, tagBg: m.tagBg,
+        border: act ? m.color : 'var(--hairline)',
+        onTap: () => this.tapZone(z.n),
+      };
+    });
+
+    const az = this.ZONES.find(z => z.n === s.activeZone);
+    let active = null;
+    if (az) {
+      const m = this.PMETA[az.priority];
+      active = { n: az.n, label: az.label, issue: az.issue, suggestion: az.suggestion,
+        color: m.color, fill: m.fill, tag: m.tag };
+    }
+
+    const goalsView = this.GOALS.map(g => {
+      const sel = s.goal === g.id;
+      return {
+        id: g.id, label: g.label, icon: g.icon,
+        onSelect: () => this.selectGoal(g.id),
+        bg: sel ? 'rgba(83,58,253,0.06)' : '#fff',
+        border: sel ? 'var(--primary)' : 'var(--hairline)',
+        iconBg: sel ? 'var(--primary)' : 'var(--canvas-soft)',
+        iconColor: sel ? '#fff' : 'var(--ink-mute)',
+        textColor: sel ? 'var(--primary-deep)' : 'var(--ink)',
+        checkColor: sel ? 'var(--primary)' : 'transparent',
+        check: sel ? 'check-circle-2' : 'circle',
+      };
+    });
+
+    const checklistView = this.CHECKLIST.map((t, i) => {
+      const on = s.checks[i];
+      return {
+        text: t,
+        onToggle: () => this.toggleCheck(i),
+        boxBorder: on ? 'var(--primary)' : 'var(--hairline-input)',
+        boxBg: on ? 'var(--primary)' : 'transparent',
+        icon: on ? 'check' : 'minus',
+        textColor: on ? 'var(--ink-mute)' : 'var(--ink)',
+        strike: on ? 'line-through' : 'none',
+      };
+    });
+    // hide the minus glyph when unchecked
+    checklistView.forEach(k => { if (k.icon === 'minus') k.icon = 'circle-dashed'; });
+    checklistView.forEach((k, i) => { if (!s.checks[i]) { k.icon = ''; } });
+
+    const stepLabel = step === 'upload' ? 'Upload'
+      : step === 'loading' ? 'Analyzing'
+      : step === 'result' ? 'Results' : 'Error';
+
+    const goalChosen = !!s.goal;
+
+    return {
+      isLanding: view === 'landing',
+      isApp: view === 'app',
+      goApp: this.goApp, goLanding: this.goLanding,
+
+      // landing data
+      heroPhoto: this.heroPhotoEl(),
+      illustration: this.illustrationEl(),
+      steps: [
+        { n: 1, icon: 'camera', title: 'Take a photo', body: 'Snap or upload one photo of any messy space.' },
+        { n: 2, icon: 'target', title: 'Choose your goal', body: 'Cleaner, safer, more storage, or a better setup.' },
+        { n: 3, icon: 'scan-search', title: 'See problem areas', body: 'AI highlights clutter, cables, and wasted space.' },
+        { n: 4, icon: 'list-checks', title: 'Follow the plan', body: 'Get prioritized suggestions and a quick checklist.' },
+      ],
+      useCases: [
+        { icon: 'monitor', label: 'Desk setup' },
+        { icon: 'bed', label: 'Bedroom corner' },
+        { icon: 'shirt', label: 'Closet' },
+        { icon: 'cable', label: 'Cable area' },
+        { icon: 'library', label: 'Bookshelf' },
+        { icon: 'archive', label: 'Under-table storage' },
+        { icon: 'door-open', label: 'Small room' },
+      ],
+      exampleCards: [
+        { color: '#ea2261', label: 'Cable mess', tag: 'High', text: 'Several cables are crossing the main working area.' },
+        { color: '#9b6829', label: 'Wasted space', tag: 'Medium', text: 'Use the back-right corner for speaker placement.' },
+        { color: '#533afd', label: 'Storage opportunity', tag: 'Low', text: 'Clear the center area for focused work.' },
+      ],
+
+      // app shell
+      showBack: step === 'result' || step === 'error',
+      resetApp: this.resetApp,
+      stepLabel,
+      stUpload: step === 'upload',
+      stLoading: step === 'loading',
+      stResult: step === 'result',
+      stError: step === 'error',
+      showPhoto: step === 'upload' || step === 'loading' || step === 'result',
+      hasUpload: !noUpload,
+      noUpload,
+      imgSrc: s.imgSrc || '',
+      showSampleBadge: noUpload && (step === 'upload' || step === 'loading'),
+
+      // markers + result
+      zones,
+      cardsView,
+      summary: this.SUMMARY,
+      zoneCount: this.ZONES.length,
+      hasActive: !!active,
+      active: active || { n: '', label: '', issue: '', suggestion: '', color: '#533afd', fill: 'transparent', tag: '' },
+
+      // upload controls
+      onFile: this.onFile,
+      useSample: this.useSample,
+      goalsView,
+      analyze: this.analyze,
+      analyzeBad: this.analyzeBad,
+      analyzeDisabled: !goalChosen,
+      analyzeBg: goalChosen ? 'var(--primary)' : '#c7cdd9',
+      analyzeCursor: goalChosen ? 'pointer' : 'not-allowed',
+      analyzeText: goalChosen ? 'Analyze my space' : 'Choose a goal first',
+
+      // checklist
+      checklistView,
+      doneCount: s.checks.filter(Boolean).length,
+      totalCount: this.CHECKLIST.length,
+
+      // follow up
+      followAsked: s.followAsked,
+      followOpen: !s.followAsked,
+      followQ: s.followQ,
+      followAnswer: s.followAnswer,
+      onFollowInput: this.onFollowInput,
+      submitFollow: this.submitFollow,
+      resetFollow: this.resetFollow,
+      followChips: [
+        { text: 'Can I put a speaker on the back-right side?', onClick: () => this.askFollow('Can I put a speaker on the back-right side?') },
+        { text: 'Where should I keep my notebook?', onClick: () => this.askFollow('Where should I keep my notebook?') },
+      ],
+    };
+  }
+
+  // ---- flat desk illustration (placeholder "photo") ----
+  illustrationEl() {
+    const h = React.createElement;
+    const wrap = (style, children) => h('div', { style }, children);
+    return h('div', { style: { position: 'absolute', inset: 0, background: 'linear-gradient(180deg,#f5e9d4 0%,#faf4ea 48%,#ffffff 100%)' } }, [
+      // wall shadow in corner
+      wrap({ key: 'wall', position: 'absolute', top: 0, right: 0, width: '40%', height: '46%', background: 'linear-gradient(135deg,rgba(28,30,84,0.04),rgba(28,30,84,0))' }),
+      // desk surface
+      wrap({ key: 'desk', position: 'absolute', left: 0, right: 0, bottom: 0, height: '34%', background: '#e3d6bd' }),
+      wrap({ key: 'deskedge', position: 'absolute', left: 0, right: 0, bottom: '32%', height: '2.5%', background: '#cab795' }),
+      // monitor stand + screen (center)
+      wrap({ key: 'stand', position: 'absolute', left: '47%', bottom: '34%', width: '6%', height: '8%', background: '#33384a' }),
+      wrap({ key: 'standbase', position: 'absolute', left: '42%', bottom: '33%', width: '16%', height: '2.5%', background: '#33384a', borderRadius: 4 }),
+      wrap({ key: 'screen', position: 'absolute', left: '38%', top: '20%', width: '26%', height: '42%', background: '#1c1e54', borderRadius: 7, boxShadow: '0 6px 14px rgba(13,37,61,0.18)' }),
+      wrap({ key: 'screenglow', position: 'absolute', left: '40%', top: '23%', width: '22%', height: '20%', background: 'linear-gradient(135deg,rgba(102,94,253,0.5),rgba(102,94,253,0))', borderRadius: 5 }),
+      // laptop (left of monitor)
+      wrap({ key: 'lapscreen', position: 'absolute', left: '20%', top: '38%', width: '15%', height: '20%', background: '#c2cad6', borderRadius: '5px 5px 0 0', border: '2px solid #aab4c2' }),
+      wrap({ key: 'lapbase', position: 'absolute', left: '17.5%', top: '57%', width: '20%', height: '5%', background: '#d3dae3', borderRadius: '2px 2px 5px 5px' }),
+      // coffee mug (near laptop = liquid near electronics) ~x30 y44
+      wrap({ key: 'mug', position: 'absolute', left: '30%', top: '46%', width: '8%', height: '15%', background: '#fff', borderRadius: '4px 4px 7px 7px', border: '2px solid #e3e8ee', boxShadow: '0 4px 8px rgba(0,0,0,0.08)' }),
+      wrap({ key: 'mughandle', position: 'absolute', left: '37.5%', top: '49%', width: '4%', height: '8%', border: '2.5px solid #e3e8ee', borderLeft: 'none', borderRadius: '0 8px 8px 0' }),
+      wrap({ key: 'coffee', position: 'absolute', left: '31.5%', top: '48%', width: '5%', height: '3%', background: '#9b6829', borderRadius: 2 }),
+      // book/clutter pile (far left) ~x5 y45
+      wrap({ key: 'b1', position: 'absolute', left: '4%', top: '57%', width: '15%', height: '4.5%', background: '#533afd', borderRadius: 2 }),
+      wrap({ key: 'b2', position: 'absolute', left: '5.5%', top: '52%', width: '13%', height: '4.5%', background: '#ea2261', borderRadius: 2, transform: 'rotate(-3deg)' }),
+      wrap({ key: 'b3', position: 'absolute', left: '4.5%', top: '47%', width: '14%', height: '4.5%', background: '#1c1e54', borderRadius: 2, transform: 'rotate(2deg)' }),
+      wrap({ key: 'b4', position: 'absolute', left: '6%', top: '42.5%', width: '11%', height: '4.5%', background: '#f96bee', borderRadius: 2, transform: 'rotate(-5deg)' }),
+      // tangled cables (bottom right) ~x60 y66
+      h('svg', { key: 'cables', viewBox: '0 0 100 100', preserveAspectRatio: 'none', style: { position: 'absolute', left: '58%', top: '62%', width: '34%', height: '30%' } }, [
+        h('path', { key: 'c1', d: 'M8 4 C 30 22, 6 40, 34 54 S 70 70, 50 92', fill: 'none', stroke: '#33384a', strokeWidth: 3, strokeLinecap: 'round' }),
+        h('path', { key: 'c2', d: 'M30 2 C 50 20, 18 44, 54 50 S 88 64, 70 90', fill: 'none', stroke: '#5b6478', strokeWidth: 3, strokeLinecap: 'round' }),
+        h('path', { key: 'c3', d: 'M58 6 C 40 26, 86 40, 60 58 S 30 76, 64 94', fill: 'none', stroke: '#828ca0', strokeWidth: 2.5, strokeLinecap: 'round' }),
+      ]),
+      // empty corner hint (top right) — faint dotted ring of unused space, no object on purpose
+      wrap({ key: 'corner', position: 'absolute', right: '4%', top: '8%', width: '20%', height: '22%', border: '1.5px dashed rgba(28,30,84,0.10)', borderRadius: 10 }),
+    ]);
+  }
+
+  heroPhotoEl() {
+    const h = React.createElement;
+    return h('div', { style: { position: 'relative', width: '100%', aspectRatio: '4 / 3', borderRadius: 12, overflow: 'hidden', border: '1px solid #e3e8ee' } }, [
+      this.illustrationEl(),
+      // a few static markers
+      ...[{ x: 58, y: 64, w: 32, h: 26, c: '#ea2261', n: 1 }, { x: 28, y: 38, w: 16, h: 26, c: '#9b6829', n: 2 }, { x: 69, y: 7, w: 27, h: 25, c: '#533afd', n: 3 }].map(z =>
+        h('div', { key: 'm' + z.n, style: { position: 'absolute', left: z.x + '%', top: z.y + '%', width: z.w + '%', height: z.h + '%', border: '2px dashed ' + z.c, borderRadius: 8 } },
+          h('span', { style: { position: 'absolute', top: -9, left: -9, width: 18, height: 18, borderRadius: '50%', background: z.c, color: '#fff', fontFamily: 'var(--font-display)', fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' } }, z.n)
+        )
+      ),
+    ]);
+  }
+}
+</script>
+</body>
+</html>
