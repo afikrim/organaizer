@@ -20,7 +20,7 @@ as a thin compatibility layer — no definitions are duplicated.
 
 ## Development
 
-The monorepo foundation is scaffolded. App/package scripts are placeholders until the Astro landing, Vite web app, and NestJS API are implemented in later milestones.
+The monorepo foundation is scaffolded. The NestJS API (milestone 4) is implemented with mock vision provider and in-memory storage. App/package scripts for Astro landing and Vite web app are placeholders.
 
 ```bash
 # Install dependencies (requires pnpm 11+)
@@ -48,6 +48,33 @@ pnpm clean
 **Port conventions:** landing `4321` · web `5173` · API `3000` (base path `/v1`)
 
 Copy `.env.example` to `.env` and fill in values before running.
+
+### API quick-start
+
+```bash
+# Start the API in dev mode (hot-reload)
+pnpm --filter @organaizer/api dev
+
+# Or start the built output
+pnpm --filter @organaizer/api build
+pnpm --filter @organaizer/api start
+```
+
+Example usage:
+
+```bash
+# Health check
+curl http://localhost:3000/v1/health
+
+# Create a session
+TOKEN=$(curl -s -X POST http://localhost:3000/v1/sessions | jq -r '.token')
+
+# Submit an image for analysis
+curl -s -X POST http://localhost:3000/v1/analyses \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "image=@/path/to/room.jpg" \
+  -F "goal=cleaner"
+```
 
 ## Testing approach
 
