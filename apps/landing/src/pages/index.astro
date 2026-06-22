@@ -250,9 +250,9 @@ const exampleCards = [
         {exampleCards.map((c) => (
           <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 13px 15px;">
             <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="width: 8px; height: 8px; border-radius: 50%; background: {c.color};"></span>
+              <span style={`width: 8px; height: 8px; border-radius: 50%; background: ${c.color};`}></span>
               <span class="type-body-md" style="color: #fff; font-weight: 500;">{c.label}</span>
-              <span style="margin-left: auto; color: {c.color}; font-size: 10px; font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.06em;">{c.tag}</span>
+              <span style={`margin-left: auto; color: ${c.color}; font-size: 10px; font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.06em;`}>{c.tag}</span>
             </div>
             <p class="type-caption" style="color: rgba(255,255,255,0.62); margin: 7px 0 0;">{c.text}</p>
           </div>
