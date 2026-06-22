@@ -1,106 +1,84 @@
-# OrganAIzer
+# organAIzer
 
-Mobile-first AI space organization assistant.
+**Live:** [organaizer-eight.vercel.app](https://organaizer-eight.vercel.app) (landing) → [organaizer-app-psi.vercel.app](https://organaizer-app-psi.vercel.app) (app)
+**Repo:** [github.com/afikrim/organaizer](https://github.com/afikrim/organaizer)
 
-## Documentation
+---
 
-- [Browser-use Visual QA Plan](docs/testing/browser-use-visual-qa-plan.md)
-- [Browser-use Visual QA Report Template](docs/testing/browser-use-report-template.md)
+## What it is
 
-## API contract
+A mobile-first web app that analyzes a photo of your space and tells you what to fix. Pick a goal (cleaner, safer, storage, work, aesthetics), upload a photo, and Gemini returns labeled zones with issues, suggestions, and an action checklist. You can ask follow-up questions about the result.
 
-The full OpenAPI 3.1.0 specification lives at [`apps/api/openapi.yaml`](apps/api/openapi.yaml).
-It documents every endpoint under `/v1`, the bearer session auth scheme, all request/response
-schemas, and expected error codes.
-
-Shared Zod schemas and inferred TypeScript types are the source of truth in
-[`packages/schema`](packages/schema/src/index.ts) (`@organaizer/schema`).
-[`packages/types`](packages/types/src/index.ts) (`@organaizer/types`) re-exports those types
-as a thin compatibility layer — no definitions are duplicated.
-
-## Development
-
-The monorepo foundation is scaffolded. The NestJS API (milestone 4) is implemented with mock vision provider and in-memory storage. App/package scripts for Astro landing and Vite web app are placeholders.
+## How to run it
 
 ```bash
-# Install dependencies (requires pnpm 11+)
 pnpm install
+cp .env.example .env   # fill in GEMINI_API_KEY, DATABASE_URL, Supabase keys
 
-# Run all packages in dev mode
+# Run everything (landing :4321, web :5173, API :3000)
 pnpm dev
 
-# Type-check all packages
-pnpm typecheck
-
-# Build all packages
-pnpm build
-
-# Run all tests
-pnpm test
-
-# Lint all packages
-pnpm lint
-
-# Clean all build artifacts
-pnpm clean
+# Or run individually
+pnpm --filter @organaizer/api dev          # API (defaults to in-memory + mock vision)
+pnpm --filter @organaizer/web dev           # SPA
+pnpm --filter @organaizer/landing dev       # Landing page
 ```
 
-**Port conventions:** landing `4321` · web `5173` · API `3000` (base path `/v1`)
+Defaults work with zero config (in-memory storage, mock vision). For real analysis, set `VISION_DRIVER=gemini` + `GEMINI_API_KEY`. For persistence, set `PERSISTENCE_DRIVER=prisma` + `DATABASE_URL`. For image storage, set `STORAGE_DRIVER=supabase` + Supabase keys. Full deploy runbook: [`docs/deploy/vercel-supabase-runbook.md`](docs/deploy/vercel-supabase-runbook.md).
 
-Copy `.env.example` to `.env` and fill in values before running.
+## Who it's for
 
-The API defaults to in-memory persistence. Prisma/Postgres schema validation is available with:
+People who look at a messy room and don't know where to start. The one job it has to do well: take a photo, give you specific, actionable steps, not generic advice.
 
-```bash
-pnpm --filter @organaizer/api prisma:validate
-pnpm --filter @organaizer/api prisma:generate
-```
+## Why this problem
 
-### Opt-in Prisma persistence driver (milestone 6c)
+Everyone has a space they avoid dealing with. Existing tools are either to-do lists (you still have to figure out what to do) or interior design apps (they design, they don't organize). There's nothing that looks at your actual space and says "cables under the desk are a trip hazard, route them along the wall." That gap is worth solving because the friction is in the diagnosis, not the execution.
 
-Set `PERSISTENCE_DRIVER=prisma` (and `DATABASE_URL`) to switch sessions, analyses, and follow-up turns to Postgres-backed Prisma repositories. Image bytes remain in-process for this milestone; a future milestone will move them to blob storage (e.g. Supabase Storage).
+## What's already out there
 
-```bash
-# .env (copy from .env.example)
-DATABASE_URL=postgresql://organaizer:organaizer@localhost:54322/organaizer?schema=public
-PERSISTENCE_DRIVER=prisma
+Pinterest/Instagram for inspiration. Notion/Todoist for checklists. AI chatbots for generic advice. None of them look at your photo and give you zone-by-zone, site-specific guidance. organAIzer does.
 
-# Apply migrations, then start
-pnpm --filter @organaizer/api prisma:migrate:dev
-pnpm --filter @organaizer/api dev
-```
+## Scope
 
-The default (no `PERSISTENCE_DRIVER` set, or `PERSISTENCE_DRIVER=memory`) requires no database. All existing tests run in memory mode and pass without a DB.
+**In:** photo upload, goal selection, Gemini vision analysis with bounding-box zones, action checklist, follow-up Q&A, session auth, Postgres persistence, Supabase image storage, landing page, mobile-first SPA.
 
-### API quick-start
+**Out:** user accounts (sessions are anonymous, token-based), saving/sharing analyses, multi-room support, before/after tracking, payment. These are post-MVP; the core loop works without them.
 
-```bash
-# Start the API in dev mode (hot-reload)
-pnpm --filter @organaizer/api dev
+## Assumptions
 
-# Or start the built output
-pnpm --filter @organaizer/api build
-pnpm --filter @organaizer/api start
-```
+- Users are on mobile (phone camera is the primary input).
+- Gemini Flash is fast and cheap enough for a demo (it is, ~10s per analysis).
+- Users don't need to save results across sessions for the MVP.
+- 8MB image limit is enough (client-side downscaling handles phone photos).
 
-Example usage:
+## Three questions for a real user
 
-```bash
-# Health check
-curl http://localhost:3000/v1/health
+1. After getting the analysis, do you actually act on it, or do you just look at it once and close it?
+2. Would you want to take a "before" photo and come back later with an "after" photo?
+3. Is one room at a time enough, or do you need to organize a whole apartment?
 
-# Create a session
-TOKEN=$(curl -s -X POST http://localhost:3000/v1/sessions | jq -r '.token')
+## How I'd know it's working
 
-# Submit an image for analysis
-curl -s -X POST http://localhost:3000/v1/analyses \
-  -H "Authorization: Bearer $TOKEN" \
-  -F "image=@/path/to/room.jpg" \
-  -F "goal=cleaner"
-```
+- Upload-to-result completes in under 15 seconds.
+- Users click on zones and read the suggestions (not just scroll past).
+- Follow-up questions are asked (indicates engagement with the result).
+- Return rate: do they analyze a second room?
 
-## Testing approach
+## What I'd do next
 
-Browser-use is used for visual QA only: matching the implemented UI against the prototype and design system in `design/`.
+- User accounts + saved analyses (the biggest missing piece for retention).
+- Before/after photo comparison.
+- Product links in suggestions (e.g. "route cables with this cable manager").
+- Multi-goal analysis (optimize for both safety and storage at once).
 
-Functional behavior such as uploads, API calls, AI responses, persistence, and rate limiting will be tested manually.
+---
+
+## How I used AI
+
+**Where it helped:**
+- Scaffolding the monorepo, NestJS API structure, and Prisma schema from a spec.
+- Debugging a production 500: AI added debug logging across the analysis pipeline, which surfaced a foreign key constraint violation (`analyses_image_key_fkey`) caused by `SupabaseImageStorage` not writing the `image_objects` metadata row to Postgres. The fix was a one-liner upsert, but finding it would have taken hours without the logging.
+- Generating the Astro landing page and React SPA UI from a design system spec.
+
+**Where it got wrong:**
+- The AI suggested `gemini-3.5-flash` as the model name in `.env`. That model doesn't exist. The correct name is `gemini-2.5-flash`. It was a confident hallucination that only surfaced when the API started returning model-not-found errors.
