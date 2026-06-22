@@ -15,41 +15,16 @@ const BASE_URL =
 
 const TOKEN_KEY = 'organaizer_session_token';
 
-/** Abort in-flight requests that exceed this budget (analysis can be slow). */
-const REQUEST_TIMEOUT_MS = 45_000;
-
 /**
- * fetch() wrapped with an AbortController timeout. Always clears the timer.
- * Aborts surface as a DOMException with name 'AbortError'.
- */
-async function fetchWithTimeout(
-  input: string,
-  init: RequestInit = {},
-): Promise<Response> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-  try {
-    return await fetch(input, { ...init, signal: controller.signal });
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-/**
- * Translate transport-level failures (timeout / network) into ApiClientError.
+ * Translate transport-level (network) failures into ApiClientError. There is
+ * deliberately no client-side timeout: image analysis can legitimately take a
+ * while, and aborting mid-request was cancelling valid analyses.
  * Errors already shaped as ApiClientError (thrown after a response is read)
  * are passed through unchanged.
  */
 function toClientError(err: unknown): ApiClientError {
   if (err && typeof err === 'object' && 'status' in err && 'message' in err) {
     return err as ApiClientError;
-  }
-  if (err instanceof DOMException && err.name === 'AbortError') {
-    return {
-      status: 0,
-      code: 'timeout',
-      message: 'The request took too long. Please try again.',
-    };
   }
   return {
     status: 0,
@@ -91,7 +66,7 @@ function clearToken(): void {
 // ---------------------------------------------------------------------------
 
 async function createSession(): Promise<string> {
-  const res = await fetchWithTimeout(`${BASE_URL}/sessions`, {
+  const res = await fetch(`${BASE_URL}/sessions`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
   });
@@ -128,7 +103,7 @@ async function authedFetch(
 ): Promise<Response> {
   const token = await ensureToken();
 
-  const res = await fetchWithTimeout(`${BASE_URL}${path}`, {
+  const res = await fetch(`${BASE_URL}${path}`, {
     method: options.method ?? 'GET',
     headers: {
       ...options.headers,
@@ -141,7 +116,7 @@ async function authedFetch(
   if (res.status === 401) {
     clearToken();
     const freshToken = await createSession();
-    return fetchWithTimeout(`${BASE_URL}${path}`, {
+    return fetch(`${BASE_URL}${path}`, {
       method: options.method ?? 'GET',
       headers: {
         ...options.headers,
