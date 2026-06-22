@@ -7,6 +7,7 @@ import { HealthModule } from './health/health.module';
 import { SessionService } from './sessions/session.service';
 import { SessionsModule } from './sessions/sessions.module';
 import { MockVisionProvider } from './vision/mock-vision.provider';
+import { VisionProvider } from './vision/vision.provider';
 import { AnalysesService } from './analyses/analyses.service';
 import { PersistenceModule } from './persistence/persistence.module';
 import { ImageStorage } from './persistence/image.storage';
@@ -80,7 +81,11 @@ describe('AnalysesService', () => {
   beforeEach(async () => {
     moduleRef = await Test.createTestingModule({
       imports: [PersistenceModule],
-      providers: [SessionService, MockVisionProvider, AnalysesService],
+      providers: [
+        SessionService,
+        { provide: VisionProvider, useClass: MockVisionProvider },
+        AnalysesService,
+      ],
     }).compile();
 
     analysesService = moduleRef.get<AnalysesService>(AnalysesService);

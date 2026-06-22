@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import type { Analysis, FollowUpAnswer, FollowUpTurn, Goal } from '@organaizer/schema';
-import { MockVisionProvider } from '../vision/mock-vision.provider';
+import { VisionProvider } from '../vision/vision.provider';
 import { errorEnvelope } from '../common/error.envelope';
 import { AnalysisRepository } from '../persistence/analysis.repository';
 import { ImageStorage, type StoredImage } from '../persistence/image.storage';
@@ -9,7 +9,7 @@ import { ImageStorage, type StoredImage } from '../persistence/image.storage';
 @Injectable()
 export class AnalysesService {
   constructor(
-    private readonly vision: MockVisionProvider,
+    private readonly vision: VisionProvider,
     private readonly analyses: AnalysisRepository,
     private readonly images: ImageStorage,
   ) {}
@@ -21,7 +21,7 @@ export class AnalysesService {
     analysisId: string,
     image: StoredImage,
   ): Promise<Analysis> {
-    const base = this.vision.createAnalysis(analysisId, goal, imageUrl);
+    const base = await this.vision.createAnalysis(analysisId, goal, imageUrl, image);
     const imageKey = this.buildImageKey(sessionId, analysisId);
     const { imageUrl: _imageUrl, ...persistedAnalysis } = base;
     void _imageUrl;
@@ -81,10 +81,20 @@ export class AnalysesService {
     const answerId = randomUUID();
     const createdAt = new Date().toISOString();
 
-    const partial = this.vision.createFollowUpAnswer(
+    const priorContext = {
+      summary: record.analysis.summary,
+      zones: record.analysis.zones.map((z) => ({
+        label: z.label,
+        issue: z.issue,
+        suggestion: z.suggestion,
+      })),
+    };
+
+    const partial = await this.vision.createFollowUpAnswer(
       analysisId,
       question,
       record.analysis.goal,
+      priorContext,
     );
 
     const turn: FollowUpTurn = {

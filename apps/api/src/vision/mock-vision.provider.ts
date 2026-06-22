@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import type { Analysis, Goal, Zone, FollowUpAnswer } from '@organaizer/schema';
+import { VisionProvider } from './vision.provider';
 
 /**
  * Deterministic mock vision provider.
@@ -8,14 +9,15 @@ import type { Analysis, Goal, Zone, FollowUpAnswer } from '@organaizer/schema';
  * No real AI calls are made.
  */
 @Injectable()
-export class MockVisionProvider {
+export class MockVisionProvider extends VisionProvider {
   private readonly MODEL_NAME = 'mock-vision-v1';
 
-  createAnalysis(
+  override async createAnalysis(
     analysisId: string,
     goal: Goal,
     imageUrl: string,
-  ): Omit<Analysis, 'followUps'> {
+    _image: { buffer: Buffer; mimetype: string; originalname: string },
+  ): Promise<Omit<Analysis, 'followUps'>> {
     const zones = this.buildZones(goal);
     const checklist = this.buildChecklist(goal);
     const summary = this.buildSummary(goal, zones.length);
@@ -33,11 +35,12 @@ export class MockVisionProvider {
     };
   }
 
-  createFollowUpAnswer(
+  override async createFollowUpAnswer(
     analysisId: string,
     question: string,
     goal: Goal,
-  ): Omit<FollowUpAnswer, 'id' | 'createdAt'> {
+    _priorContext?: { summary: string; zones: { label: string; issue: string; suggestion: string }[] },
+  ): Promise<Omit<FollowUpAnswer, 'id' | 'createdAt'>> {
     const answer = this.buildFollowUpAnswer(question, goal);
     return {
       analysisId,
