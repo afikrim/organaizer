@@ -8,7 +8,9 @@ import { LoggingInterceptor } from './observability/logging.interceptor';
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
 
-  const port = parseInt(process.env['API_PORT'] ?? '3000', 10);
+  // Vercel (and most PaaS) inject PORT and expect the server to bind to it;
+  // fall back to API_PORT for local/self-hosted runs.
+  const port = parseInt(process.env['PORT'] ?? process.env['API_PORT'] ?? '3000', 10);
   const basePath = process.env['API_BASE_PATH'] ?? '/v1';
 
   app.setGlobalPrefix(basePath.replace(/^\//, ''));

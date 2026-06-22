@@ -1,5 +1,9 @@
 generator client {
   provider = "prisma-client-js"
+  // "native" for local dev; "rhel-openssl-3.0.x" so the query engine binary is
+  // present in Vercel's serverless runtime (Amazon Linux). Without this the
+  // client builds fine but throws "did not initialize" at runtime on Vercel.
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
