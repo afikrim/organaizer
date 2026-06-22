@@ -2,6 +2,7 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { ImageStorage, ImageStorageRecord, StoredImage } from './image.storage';
 import { errorEnvelope } from '../common/error.envelope';
+import { PrismaService } from './prisma.service';
 
 /**
  * Supabase Storage-backed ImageStorage adapter.
@@ -21,7 +22,7 @@ export class SupabaseImageStorage implements ImageStorage {
   private readonly bucket: string;
   private readonly signedUrlTtl: number;
 
-  constructor() {
+  constructor(private readonly prisma: PrismaService) {
     const url = process.env['SUPABASE_URL'];
     if (!url) {
       throw new Error(
@@ -51,10 +52,9 @@ export class SupabaseImageStorage implements ImageStorage {
     key: string,
     image: StoredImage,
     _imageUrl: string,
-    _sessionId: string,
+    sessionId: string,
   ): Promise<void> {
     void _imageUrl;
-    void _sessionId;
 
     const { error } = await this.client.storage
       .from(this.bucket)
@@ -71,6 +71,18 @@ export class SupabaseImageStorage implements ImageStorage {
         ),
       );
     }
+
+    await this.prisma.imageObject.upsert({
+      where: { key },
+      create: {
+        key,
+        sessionId,
+        originalName: image.originalname,
+        mimeType: image.mimetype,
+        sizeBytes: image.buffer.length,
+      },
+      update: {},
+    });
   }
 
   async get(_key: string): Promise<ImageStorageRecord | undefined> {

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import type { Analysis, FollowUpAnswer, FollowUpTurn, Goal } from '@organaizer/schema';
 import { VisionProvider } from '../vision/vision.provider';
@@ -9,6 +9,8 @@ import { MetricsService } from '../observability/metrics.service';
 
 @Injectable()
 export class AnalysesService {
+  private readonly logger = new Logger(AnalysesService.name);
+
   constructor(
     private readonly vision: VisionProvider,
     private readonly analyses: AnalysisRepository,
@@ -24,7 +26,9 @@ export class AnalysesService {
     image: StoredImage,
   ): Promise<Analysis> {
     try {
+      this.logger.debug(`[analysis ${analysisId}] start: goal=${goal} imageUrl=${imageUrl} imageBytes=${image.buffer.length} mimetype=${image.mimetype}`);
       const base = await this.runVision(analysisId, goal, imageUrl, image);
+      this.logger.debug(`[analysis ${analysisId}] vision complete: zones=${base.zones.length} checklist=${base.checklist.length}`);
       const imageKey = this.buildImageKey(sessionId, analysisId);
       const { imageUrl: _imageUrl, ...persistedAnalysis } = base;
       void _imageUrl;
@@ -35,7 +39,9 @@ export class AnalysesService {
       };
 
       await this.images.save(imageKey, image, imageUrl, sessionId);
+      this.logger.debug(`[analysis ${analysisId}] image saved: key=${imageKey}`);
       await this.analyses.save({ sessionId, imageKey, analysis });
+      this.logger.debug(`[analysis ${analysisId}] analysis record saved`);
 
       // Prefer the canonical URL the storage driver reports (signed URL for
       // Supabase; the same imageUrl for memory/prisma so behavior is unchanged).
@@ -43,6 +49,7 @@ export class AnalysesService {
       this.metrics.recordAnalysis(true);
       return { ...analysis, imageUrl: storedUrl };
     } catch (err) {
+      this.logger.error(`[analysis ${analysisId}] failed`, err instanceof Error ? err.stack : String(err));
       this.metrics.recordAnalysis(false);
       throw err;
     }
@@ -61,6 +68,7 @@ export class AnalysesService {
       this.metrics.recordVision(Date.now() - start, true);
       return base;
     } catch (err) {
+      this.logger.error(`[analysis ${analysisId}] vision error after ${Date.now() - start}ms`, err instanceof Error ? err.stack : String(err));
       this.metrics.recordVision(Date.now() - start, false);
       throw err;
     }

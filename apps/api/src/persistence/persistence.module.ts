@@ -25,7 +25,7 @@ const usePrismaForImages =
 
 // Fail fast at module load time if Prisma was requested but DATABASE_URL is absent.
 // PrismaService is still required whenever sessions use Prisma, even if images go to Supabase.
-if ((usePrismaForSessions || usePrismaForImages) && !process.env['DATABASE_URL']) {
+if ((usePrismaForSessions || usePrismaForImages || useSupabaseForImages) && !process.env['DATABASE_URL']) {
   throw new Error(
     '[PersistenceModule] PERSISTENCE_DRIVER/STORAGE_DRIVER is set to "prisma" but ' +
       'DATABASE_URL is not defined. Set DATABASE_URL in your environment or .env file, ' +
@@ -55,8 +55,9 @@ if (useSupabaseForImages) {
 
 @Module({
   providers: [
-    // PrismaService is only instantiated when at least one Prisma adapter is active.
-    ...(usePrismaForSessions || usePrismaForImages ? [PrismaService] : []),
+    // PrismaService is only instantiated when at least one Prisma adapter is active,
+    // or when Supabase Storage is used (it needs Prisma to write the image_objects FK row).
+    ...(usePrismaForSessions || usePrismaForImages || useSupabaseForImages ? [PrismaService] : []),
 
     {
       provide: SessionRepository,

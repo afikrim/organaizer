@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { GoogleGenAI, Type, ApiError } from '@google/genai';
 import type { Analysis, Goal, Zone, FollowUpAnswer } from '@organaizer/schema';
@@ -13,6 +13,7 @@ import { errorEnvelope } from '../common/error.envelope';
  */
 @Injectable()
 export class GeminiVisionProvider extends VisionProvider {
+  private readonly logger = new Logger(GeminiVisionProvider.name);
   private readonly client: GoogleGenAI;
   private readonly model: string;
 
@@ -88,6 +89,7 @@ export class GeminiVisionProvider extends VisionProvider {
 
     let raw: string;
     try {
+      this.logger.debug(`[gemini analysis ${analysisId}] request: model=${this.model} goal=${goal} imageBytes=${image.buffer.length} promptLen=${prompt.length}`);
       const response = await this.client.models.generateContent({
         model: this.model,
         contents: [
@@ -105,6 +107,7 @@ export class GeminiVisionProvider extends VisionProvider {
         },
       });
       raw = response.text ?? '';
+      this.logger.debug(`[gemini analysis ${analysisId}] response: textLen=${raw?.length ?? 0}`);
     } catch (err) {
       throw this.handleError(err, 'analysis');
     }
@@ -163,6 +166,7 @@ export class GeminiVisionProvider extends VisionProvider {
 
     let raw: string;
     try {
+      this.logger.debug(`[gemini follow-up ${analysisId}] request: model=${this.model} questionLen=${question.length}`);
       const response = await this.client.models.generateContent({
         model: this.model,
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
@@ -172,6 +176,7 @@ export class GeminiVisionProvider extends VisionProvider {
         },
       });
       raw = response.text ?? '';
+      this.logger.debug(`[gemini follow-up ${analysisId}] response: textLen=${raw?.length ?? 0}`);
     } catch (err) {
       throw this.handleError(err, 'follow-up');
     }
@@ -343,6 +348,7 @@ Return JSON matching the schema.`;
   // -----------------------------------------------------------------------
 
   private handleError(err: unknown, context: string): InternalServerErrorException {
+    this.logger.error(`[gemini ${context}] error: ${err instanceof Error ? err.message : String(err)}`, err instanceof Error ? err.stack : undefined);
     if (err instanceof ApiError) {
       const status = err.status;
       if (status === 429) {
