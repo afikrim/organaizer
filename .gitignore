@@ -45,3 +45,6 @@ yarn-error.log*
 
 # OpenCode session state - do not commit
 .opencode/
+
+# Vercel CLI link state - do not commit
+.vercel/
