@@ -37,8 +37,11 @@ export class AnalysesService {
       await this.images.save(imageKey, image, imageUrl, sessionId);
       await this.analyses.save({ sessionId, imageKey, analysis });
 
+      // Prefer the canonical URL the storage driver reports (signed URL for
+      // Supabase; the same imageUrl for memory/prisma so behavior is unchanged).
+      const storedUrl = (await this.images.getUrl(imageKey)) ?? imageUrl;
       this.metrics.recordAnalysis(true);
-      return { ...analysis, imageUrl };
+      return { ...analysis, imageUrl: storedUrl };
     } catch (err) {
       this.metrics.recordAnalysis(false);
       throw err;
