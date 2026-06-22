@@ -1,7 +1,8 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import {
   Camera, CheckCircle2, AlertTriangle, RefreshCw, ArrowRight, ShieldCheck,
-  Sparkles, ShieldAlert, Archive, Briefcase, Palette, Check, Image as ImageIcon
+  Sparkles, ShieldAlert, Archive, Briefcase, Palette, Check, Image as ImageIcon,
+  ImageOff, ServerCrash
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -24,6 +25,57 @@ const GoalIcons: Record<Goal, React.ReactNode> = {
 
 const PRIORITY_SORT_ORDER: Record<string, number> = { high: 3, medium: 2, low: 1 };
 
+// ---------------------------------------------------------------------------
+// Error-code → UI mapping (mirrors the API error matrix)
+// ---------------------------------------------------------------------------
+
+interface ErrorDescriptor {
+  icon: React.ReactNode;
+  title: string;
+  body: string;
+  /** 'retry' re-runs analysis preserving photo+goal; 'choose-another' returns to upload for a new photo (goal kept). */
+  action: 'retry' | 'choose-another';
+  actionLabel: string;
+}
+
+/** Map an API error code to its error-screen descriptor. `rate_limited` never reaches here (it's a toast). */
+function describeError(code: string | null | undefined): ErrorDescriptor {
+  switch (code) {
+    case 'invalid_file':
+    case 'image_too_large':
+    case 'invalid_goal':
+      return {
+        icon: <ImageOff className="w-10 h-10 text-ruby" />,
+        title: "That photo won't work",
+        body: 'Please upload a JPG, PNG, or WebP under 8MB.',
+        action: 'choose-another',
+        actionLabel: 'Choose another photo',
+      };
+    case 'ai_unavailable':
+    case 'internal_error':
+    case 'timeout':
+    case 'network':
+      return {
+        icon: <ServerCrash className="w-10 h-10 text-ruby" />,
+        title: 'Something went wrong',
+        body: "We couldn't reach the analyzer. Your photo and goal are saved — try again.",
+        action: 'retry',
+        actionLabel: 'Try again',
+      };
+    default:
+      return {
+        icon: <AlertTriangle className="w-10 h-10 text-ruby" />,
+        title: "Couldn't analyze this photo",
+        body: "I couldn't confidently analyze this image. Try a clearer photo with better lighting.",
+        action: 'choose-another',
+        actionLabel: 'Choose another photo',
+      };
+  }
+}
+
+const RATE_LIMIT_TOAST =
+  "We're getting a lot of requests right now. Please try again in a moment.";
+
 export default function OrganaizerApp() {
   const [appState, setAppState] = useState<AppState>('upload');
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
@@ -37,6 +89,8 @@ export default function OrganaizerApp() {
   // API result
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
 
   const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set());
   const [forceError, setForceError] = useState(false);
@@ -55,6 +109,13 @@ export default function OrganaizerApp() {
       }
     };
   }, [uploadedImage]);
+
+  // Auto-dismiss transient toasts.
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 4000);
+    return () => clearTimeout(t);
+  }, [toast]);
 
   // The zones/checklist from the current analysis (or empty while no result yet)
   const zones = analysis?.zones ?? [];
@@ -88,14 +149,16 @@ export default function OrganaizerApp() {
 
     // Demo Error mode: skip API and go straight to error state
     if (forceError) {
-      setAppState('error');
+      setErrorCode('low_confidence');
       setErrorMsg('Low-confidence demo error (local simulation).');
+      setAppState('error');
       return;
     }
 
     setAppState('loading');
     setAnalysis(null);
     setErrorMsg(null);
+    setErrorCode(null);
     setChatTurns([]);
     setCompletedTasks(new Set());
 
@@ -108,9 +171,30 @@ export default function OrganaizerApp() {
       setAppState('result');
     } catch (err: unknown) {
       const apiErr = err as { code?: string; message?: string };
+      // Rate limit: stay on upload (photo+goal intact) and surface a toast.
+      if (apiErr?.code === 'rate_limited') {
+        setAppState('upload');
+        setToast(RATE_LIMIT_TOAST);
+        return;
+      }
+      setErrorCode(apiErr?.code ?? null);
       setErrorMsg(apiErr?.message ?? 'Unknown error');
       setAppState('error');
     }
+  };
+
+  /** Return to upload for a fresh photo, keeping the selected goal. */
+  const chooseAnotherPhoto = () => {
+    setAppState('upload');
+    setErrorCode(null);
+    setErrorMsg(null);
+    setAnalysis(null);
+    if (uploadedImage?.startsWith('blob:')) {
+      URL.revokeObjectURL(uploadedImage);
+    }
+    setUploadedImage(null);
+    setUploadedFile(null);
+    // selectedGoal intentionally preserved
   };
 
   const resetApp = () => {
@@ -124,6 +208,8 @@ export default function OrganaizerApp() {
     setSelectedGoal(null);
     setAnalysis(null);
     setErrorMsg(null);
+    setErrorCode(null);
+    setToast(null);
   };
 
   const toggleTask = (idx: number) => {
@@ -186,6 +272,16 @@ export default function OrganaizerApp() {
             Demo Error
           </label>
         </header>
+
+        {/* Transient toast (e.g. rate-limit notice) */}
+        {toast && (
+          <div className="absolute top-20 left-4 right-4 z-50 animate-oai-fade">
+            <div className="bg-ink text-white text-sm rounded-xl px-4 py-3 shadow-lg flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 text-ruby shrink-0 mt-0.5" />
+              <span className="leading-snug">{toast}</span>
+            </div>
+          </div>
+        )}
 
         <main className="flex-1 flex flex-col relative overflow-y-auto scrollbar-none pb-28">
 
@@ -517,29 +613,32 @@ export default function OrganaizerApp() {
           )}
 
           {/* --- ERROR STATE --- */}
-          {appState === 'error' && (
-            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-oai-fade">
-              <div className="w-20 h-20 bg-ruby/10 rounded-full flex items-center justify-center mb-6">
-                <AlertTriangle className="w-10 h-10 text-ruby" />
+          {appState === 'error' && (() => {
+            const err = describeError(errorCode);
+            const onAction =
+              err.action === 'retry' ? () => { void handleAnalyze(); } : chooseAnotherPhoto;
+            return (
+              <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-oai-fade">
+                <div className="w-20 h-20 bg-ruby/10 rounded-full flex items-center justify-center mb-6">
+                  {err.icon}
+                </div>
+                <h2 className="text-2xl font-bold mb-3 text-ink">{err.title}</h2>
+                <p className="text-ink-mute mb-4 leading-relaxed">{err.body}</p>
+                {errorMsg && (
+                  <p className="text-xs text-ink-mute mb-6 font-mono bg-canvas-soft px-3 py-2 rounded-lg max-w-xs break-words">
+                    {errorMsg}
+                  </p>
+                )}
+                <button
+                  onClick={onAction}
+                  className="flex items-center gap-2 px-6 py-3 rounded-full bg-ink text-white font-medium hover:bg-ink-secondary transition-colors"
+                >
+                  {err.action === 'retry' ? <RefreshCw className="w-4 h-4" /> : <Camera className="w-4 h-4" />}
+                  {err.actionLabel}
+                </button>
               </div>
-              <h2 className="text-2xl font-bold mb-3 text-ink">Couldn't analyze this photo</h2>
-              <p className="text-ink-mute mb-4 leading-relaxed">
-                I could not confidently analyze this image. Try a clearer photo with better lighting and more of the space visible.
-              </p>
-              {errorMsg && (
-                <p className="text-xs text-ink-mute mb-6 font-mono bg-canvas-soft px-3 py-2 rounded-lg max-w-xs break-words">
-                  {errorMsg}
-                </p>
-              )}
-              <button
-                onClick={resetApp}
-                className="flex items-center gap-2 px-6 py-3 rounded-full bg-ink text-white font-medium hover:bg-ink-secondary transition-colors"
-              >
-                <RefreshCw className="w-4 h-4" />
-                Try again
-              </button>
-            </div>
-          )}
+            );
+          })()}
 
         </main>
 
