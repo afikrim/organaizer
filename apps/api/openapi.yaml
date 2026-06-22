@@ -275,6 +275,51 @@ paths:
                     minimum: 0
                     description: Seconds since the API process started.
 
+  /metrics:
+    get:
+      operationId: getMetrics
+      summary: Observability counters
+      description: >-
+        Returns in-memory observability counters (analysis success/error and
+        vision request latency/errors). Counters reset on process restart.
+      tags: [System]
+      responses:
+        "200":
+          description: Current metrics snapshot.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [analysis, vision]
+                additionalProperties: false
+                properties:
+                  analysis:
+                    type: object
+                    required: [successTotal, errorTotal]
+                    additionalProperties: false
+                    properties:
+                      successTotal:
+                        type: integer
+                        minimum: 0
+                      errorTotal:
+                        type: integer
+                        minimum: 0
+                  vision:
+                    type: object
+                    required: [requestsTotal, errorsTotal, avgLatencyMs]
+                    additionalProperties: false
+                    properties:
+                      requestsTotal:
+                        type: integer
+                        minimum: 0
+                      errorsTotal:
+                        type: integer
+                        minimum: 0
+                      avgLatencyMs:
+                        type: integer
+                        minimum: 0
+                        description: Mean vision-provider latency in ms.
+
   /sessions:
     post:
       operationId: createSession

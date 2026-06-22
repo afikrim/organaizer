@@ -11,6 +11,8 @@ import { VisionProvider } from './vision/vision.provider';
 import { AnalysesService } from './analyses/analyses.service';
 import { PersistenceModule } from './persistence/persistence.module';
 import { ImageStorage } from './persistence/image.storage';
+import { MetricsService } from './observability/metrics.service';
+import { ObservabilityModule } from './observability/observability.module';
 
 // Minimal stub image for unit tests – a 1×1 transparent PNG as a Buffer.
 const STUB_IMAGE = {
@@ -28,7 +30,7 @@ describe('HealthController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [HealthModule],
+      imports: [ObservabilityModule, HealthModule],
     }).compile();
     controller = module.get<HealthController>(HealthController);
   });
@@ -84,6 +86,7 @@ describe('AnalysesService', () => {
       providers: [
         SessionService,
         { provide: VisionProvider, useClass: MockVisionProvider },
+        MetricsService,
         AnalysesService,
       ],
     }).compile();

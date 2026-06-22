@@ -5,6 +5,7 @@ import { VisionProvider } from '../vision/vision.provider';
 import { errorEnvelope } from '../common/error.envelope';
 import { AnalysisRepository } from '../persistence/analysis.repository';
 import { ImageStorage, type StoredImage } from '../persistence/image.storage';
+import { MetricsService } from '../observability/metrics.service';
 
 @Injectable()
 export class AnalysesService {
@@ -12,6 +13,7 @@ export class AnalysesService {
     private readonly vision: VisionProvider,
     private readonly analyses: AnalysisRepository,
     private readonly images: ImageStorage,
+    private readonly metrics: MetricsService,
   ) {}
 
   async createAnalysis(
@@ -21,20 +23,44 @@ export class AnalysesService {
     analysisId: string,
     image: StoredImage,
   ): Promise<Analysis> {
-    const base = await this.vision.createAnalysis(analysisId, goal, imageUrl, image);
-    const imageKey = this.buildImageKey(sessionId, analysisId);
-    const { imageUrl: _imageUrl, ...persistedAnalysis } = base;
-    void _imageUrl;
+    try {
+      const base = await this.runVision(analysisId, goal, imageUrl, image);
+      const imageKey = this.buildImageKey(sessionId, analysisId);
+      const { imageUrl: _imageUrl, ...persistedAnalysis } = base;
+      void _imageUrl;
 
-    const analysis = {
-      ...persistedAnalysis,
-      followUps: [],
-    };
+      const analysis = {
+        ...persistedAnalysis,
+        followUps: [],
+      };
 
-    await this.images.save(imageKey, image, imageUrl, sessionId);
-    await this.analyses.save({ sessionId, imageKey, analysis });
+      await this.images.save(imageKey, image, imageUrl, sessionId);
+      await this.analyses.save({ sessionId, imageKey, analysis });
 
-    return { ...analysis, imageUrl };
+      this.metrics.recordAnalysis(true);
+      return { ...analysis, imageUrl };
+    } catch (err) {
+      this.metrics.recordAnalysis(false);
+      throw err;
+    }
+  }
+
+  /** Time the vision call and record latency/error metrics, then rethrow on failure. */
+  private async runVision(
+    analysisId: string,
+    goal: Goal,
+    imageUrl: string,
+    image: StoredImage,
+  ): Promise<Omit<Analysis, 'followUps'>> {
+    const start = Date.now();
+    try {
+      const base = await this.vision.createAnalysis(analysisId, goal, imageUrl, image);
+      this.metrics.recordVision(Date.now() - start, true);
+      return base;
+    } catch (err) {
+      this.metrics.recordVision(Date.now() - start, false);
+      throw err;
+    }
   }
 
   async getAnalysis(

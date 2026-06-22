@@ -3,6 +3,7 @@ import './env';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './filters/all-exceptions.filter';
+import { LoggingInterceptor } from './observability/logging.interceptor';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
@@ -12,6 +13,7 @@ async function bootstrap(): Promise<void> {
 
   app.setGlobalPrefix(basePath.replace(/^\//, ''));
   app.useGlobalFilters(new AllExceptionsFilter());
+  app.useGlobalInterceptors(new LoggingInterceptor());
 
   const rawOrigins =
     process.env['CORS_ORIGINS'] ?? 'http://localhost:4321,http://localhost:5173';
