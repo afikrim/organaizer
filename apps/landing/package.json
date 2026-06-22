@@ -3,11 +3,17 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "dev": "echo 'landing: dev not configured yet'",
-    "build": "echo 'landing: build not configured yet'",
-    "typecheck": "tsc --noEmit",
+    "dev": "astro dev --port 4321",
+    "build": "astro build",
+    "preview": "astro preview",
+    "typecheck": "astro check",
     "lint": "echo 'landing: lint not configured yet'",
     "test": "echo 'landing: test not configured yet'",
     "clean": "rm -rf dist .turbo"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.9.9",
+    "astro": "^6.4.8",
+    "typescript": "^6.0.3"
   }
 }

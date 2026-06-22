@@ -1,0 +1,301 @@
+---
+const APP_URL = import.meta.env.APP_URL || 'http://localhost:5173';
+
+const steps = [
+  { n: 1, icon: "camera", title: "Take a photo", body: "Snap or upload one photo of any messy space." },
+  { n: 2, icon: "target", title: "Choose your goal", body: "Cleaner, safer, more storage, or a better setup." },
+  { n: 3, icon: "scan-search", title: "See problem areas", body: "AI highlights clutter, cables, and wasted space." },
+  { n: 4, icon: "list-checks", title: "Follow the plan", body: "Get prioritized suggestions and a quick checklist." }
+];
+
+const useCases = [
+  { icon: "monitor", label: "Desk setup" },
+  { icon: "bed", label: "Bedroom corner" },
+  { icon: "shirt", label: "Closet" },
+  { icon: "cable", label: "Cable area" },
+  { icon: "library", label: "Bookshelf" },
+  { icon: "archive", label: "Under-table storage" },
+  { icon: "door-open", label: "Small room" }
+];
+
+const exampleCards = [
+  { color: "#ea2261", label: "Cable mess", tag: "High", text: "Several cables are crossing the main working area." },
+  { color: "#9b6829", label: "Wasted space", tag: "Medium", text: "Use the back-right corner for speaker placement." },
+  { color: "#533afd", label: "Storage opportunity", tag: "Low", text: "Clear the center area for focused work." }
+];
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>organAIzer - Organize any messy space from a photo</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --primary: #533afd;
+      --primary-deep: #4434d4;
+      --primary-press: #2e2b8c;
+      --primary-soft: #665efd;
+      --primary-subdued: #b9b9f9;
+      --brand-dark-900: #1c1e54;
+      --ruby: #ea2261;
+      --lemon: #9b6829;
+      --canvas: #ffffff;
+      --canvas-soft: #f6f9fc;
+      --hairline: #e3e8ee;
+      --ink: #0d253d;
+      --ink-secondary: #273951;
+      --ink-mute: #64748d;
+      --ink-mute-2: #61718a;
+      
+      --font-body: 'Inter', sans-serif;
+      --font-display: 'Inter', sans-serif;
+    }
+    
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--canvas);
+      font-family: var(--font-body);
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+    
+    * { box-sizing: border-box; }
+    ::selection { background: rgba(83,58,253,0.16); }
+
+    /* Typography Classes */
+    .type-display-xxl { font-size: 48px; line-height: 1.1; font-weight: 600; letter-spacing: -0.04em; }
+    .type-display-xl { font-size: 40px; line-height: 1.15; font-weight: 600; letter-spacing: -0.03em; }
+    .type-display-lg { font-size: 32px; line-height: 1.2; font-weight: 600; letter-spacing: -0.02em; }
+    .type-heading-sm { font-size: 20px; line-height: 1.3; font-weight: 500; letter-spacing: -0.01em; }
+    .type-body-lg { font-size: 18px; line-height: 1.5; font-weight: 400; }
+    .type-body-md { font-size: 16px; line-height: 1.5; font-weight: 400; }
+    .type-body-tabular { font-size: 14px; line-height: 1.5; font-weight: 400; font-variant-numeric: tabular-nums; }
+    .type-caption { font-size: 13px; line-height: 1.5; font-weight: 400; }
+    .type-micro-cap { font-size: 11px; line-height: 1.5; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
+
+    @keyframes oaiFade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    .oai-fade { animation: oaiFade .4s ease both; }
+
+    [data-lucide] { display: inline-flex; }
+
+    /* Layout utilities */
+    .container { max-width: 1180px; margin: 0 auto; padding-left: 28px; padding-right: 28px; }
+    .nav-container { padding-top: 16px; padding-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .hero-grid { padding-top: 72px; padding-bottom: 40px; display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 48px; align-items: center; }
+    .steps-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+    .example-grid { padding-top: 84px; padding-bottom: 84px; display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 56px; align-items: center; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .type-display-xxl { font-size: 36px; }
+      .type-display-xl { font-size: 32px; }
+      .type-display-lg { font-size: 28px; }
+      .hero-grid { grid-template-columns: 1fr; }
+      .example-grid { grid-template-columns: 1fr; }
+      .steps-grid { grid-template-columns: 1fr; }
+      .nav-links { display: none !important; }
+      .footer-container { flex-direction: column; align-items: flex-start !important; }
+    }
+    @media (min-width: 769px) and (max-width: 1024px) {
+      .steps-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    
+    .btn-primary { border: none; cursor: pointer; background: var(--primary); color: #fff; font-family: var(--font-display); font-size: 16px; padding: 12px 24px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
+    .btn-outline { cursor: pointer; background: #fff; color: var(--primary); border: 1px solid var(--primary); font-family: var(--font-display); font-size: 16px; padding: 12px 22px; border-radius: 9999px; text-decoration: none; display: inline-flex; align-items: center; }
+    .btn-nav { font-size: 15px; padding: 9px 18px; border: none; cursor: pointer; background: var(--primary); color: #fff; font-family: var(--font-display); border-radius: 9999px; text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<div class="oai-fade">
+
+  <!-- Nav -->
+  <div style="position: sticky; top: 0; z-index: 40; background: rgba(255,255,255,0.82); backdrop-filter: blur(12px); border-bottom: 1px solid var(--hairline);">
+    <div class="container nav-container">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <img src="/assets/logo-mark-indigo.png" alt="" style="height: 26px; width: auto;">
+        <span class="type-heading-sm" style="font-weight: 500; letter-spacing: -0.3px;">organ<span style="color: var(--primary);">AI</span>zer</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 30px;">
+        <span class="type-body-md nav-links" style="color: var(--ink-mute-2);">How it works</span>
+        <span class="type-body-md nav-links" style="color: var(--ink-mute-2);">Use cases</span>
+        <span class="type-body-md nav-links" style="color: var(--ink-mute-2);">Example</span>
+        <a href={APP_URL} class="btn-nav">Try organAIzer</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <div style="position: relative; overflow: hidden;">
+    <div style="position: absolute; top: 0; left: 0; right: 0; height: 560px; background-image: url('/assets/gradient-mesh.png'); background-size: cover; background-position: center top; opacity: 0.9;"></div>
+    <div style="position: absolute; top: 480px; left: 0; right: 0; height: 200px; background: linear-gradient(180deg, rgba(255,255,255,0) 0%, #fff 100%);"></div>
+    <div class="container hero-grid" style="position: relative;">
+      <div>
+        <span style="display: inline-flex; align-items: center; gap: 6px; background: var(--primary-subdued); color: var(--primary-deep); font-family: var(--font-display); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; padding: 5px 11px; border-radius: 9999px;">AI space organizer</span>
+        <h1 class="type-display-xxl" style="margin: 20px 0 0; max-width: 13ch;">Organize any messy space from a photo.</h1>
+        <p class="type-body-lg" style="color: var(--ink-secondary); margin: 20px 0 0; max-width: 46ch;">Upload a photo of your desk, bedroom, closet, or storage corner and get AI-powered suggestions to make it cleaner, safer, and more functional.</p>
+        <div style="display: flex; gap: 12px; margin-top: 30px; flex-wrap: wrap;">
+          <a href={APP_URL} class="btn-primary">Try organAIzer <i data-lucide="arrow-right" style="width: 17px; height: 17px;"></i></a>
+          <a href="#how-it-works" class="btn-outline">See how it works</a>
+        </div>
+        <div style="display: flex; gap: 22px; margin-top: 30px; color: var(--ink-mute); flex-wrap: wrap;">
+          <span class="type-body-tabular">No sign-up</span>
+          <span class="type-body-tabular">·</span>
+          <span class="type-body-tabular">One photo</span>
+          <span class="type-body-tabular">·</span>
+          <span class="type-body-tabular">Works on mobile</span>
+        </div>
+      </div>
+      
+      <!-- Hero phone mockup -->
+      <div style="display: flex; justify-content: center;">
+        <div style="width: 288px; border-radius: 36px; background: #fff; box-shadow: 0 30px 60px rgba(0,55,112,0.18), 0 2px 6px rgba(0,55,112,0.06); padding: 14px; border: 1px solid rgba(13,37,61,0.06);">
+          <div style="display: flex; align-items: center; gap: 7px; padding: 2px 4px 12px;">
+            <img src="/assets/logo-mark-indigo.png" alt="" style="height: 16px;">
+            <span class="type-body-tabular" style="font-weight: 500;">Analysis result</span>
+            <span style="margin-left: auto; background: rgba(31,138,91,0.12); color: #1f8a5b; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; font-family: var(--font-display); padding: 3px 7px; border-radius: 9999px;">Done</span>
+          </div>
+          <div style="position: relative; border-radius: 12px; overflow: hidden; aspect-ratio: 4/3; background: #f0f0f0;">
+             <img src="/assets/gradient-mesh.png" alt="Example space" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.5;">
+             <div style="position: absolute; top: 30%; left: 40%; width: 24px; height: 24px; border-radius: 50%; background: #ea2261; color: #fff; font-size: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.25);">1</div>
+          </div>
+          <div style="margin-top: 10px; border: 1px solid var(--hairline); border-radius: 12px; padding: 11px 12px;">
+            <div style="display: flex; align-items: center; gap: 7px;">
+              <span style="width: 7px; height: 7px; border-radius: 50%; background: #ea2261;"></span>
+              <span class="type-body-tabular" style="font-weight: 500;">Cable mess</span>
+              <span style="margin-left: auto; color: #ea2261; font-size: 10px; font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.06em;">High</span>
+            </div>
+            <p class="type-caption" style="color: var(--ink-mute); margin: 7px 0 0;">Route cables behind the desk and group them with clips.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Problem -->
+  <div style="background: var(--canvas-soft); border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline);">
+    <div style="max-width: 880px; margin: 0 auto; padding: 72px 28px; text-align: center;">
+      <span class="type-micro-cap" style="color: var(--primary-deep);">The problem</span>
+      <p class="type-display-lg" style="margin: 16px 0 0; color: var(--ink);">Your space feels messy — but knowing where to start is the hard part.</p>
+      <p class="type-body-lg" style="color: var(--ink-secondary); margin: 18px 0 0;">organAIzer helps you identify clutter, unsafe placement, wasted space, and simple improvements from a single photo. No judgment, no expensive furniture — just practical next steps using what you already have.</p>
+    </div>
+  </div>
+
+  <!-- How it works -->
+  <div id="how-it-works" class="container" style="padding-top: 84px; padding-bottom: 84px;">
+    <div style="text-align: center; margin-bottom: 48px;">
+      <span class="type-micro-cap" style="color: var(--primary-deep);">How it works</span>
+      <h2 class="type-display-lg" style="margin: 14px 0 0;">From a photo to a plan in four steps.</h2>
+    </div>
+    <div class="steps-grid">
+      {steps.map((s) => (
+        <div style="background: #fff; border: 1px solid var(--hairline); border-radius: 14px; padding: 24px;">
+          <div style="width: 42px; height: 42px; border-radius: 11px; background: var(--primary-subdued); color: var(--primary-deep); display: flex; align-items: center; justify-content: center;">
+            <i data-lucide={s.icon} style="width: 21px; height: 21px;"></i>
+          </div>
+          <div class="type-body-tabular" style="color: var(--ink-mute); margin-top: 18px;">Step {s.n}</div>
+          <div class="type-heading-sm" style="margin-top: 4px; font-weight: 500;">{s.title}</div>
+          <p class="type-body-md" style="color: var(--ink-secondary); margin: 8px 0 0;">{s.body}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <!-- Use cases -->
+  <div style="background: var(--canvas-soft); border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline);">
+    <div class="container" style="padding-top: 72px; padding-bottom: 72px;">
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-bottom: 32px;">
+        <div>
+          <span class="type-micro-cap" style="color: var(--primary-deep);">Use cases</span>
+          <h2 class="type-display-lg" style="margin: 14px 0 0;">Not just desks.</h2>
+        </div>
+        <p class="type-body-md" style="color: var(--ink-secondary); max-width: 38ch; margin: 0;">Any small or cluttered space where you want a cleaner, safer, more usable layout.</p>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+        {useCases.map((u) => (
+          <div style="display: inline-flex; align-items: center; gap: 9px; background: #fff; border: 1px solid var(--hairline); border-radius: 9999px; padding: 11px 18px;">
+            <i data-lucide={u.icon} style="width: 17px; height: 17px; color: var(--primary);"></i>
+            <span class="type-body-md">{u.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <!-- Example result -->
+  <div class="container example-grid">
+    <div>
+      <span class="type-micro-cap" style="color: var(--primary-deep);">Example result</span>
+      <h2 class="type-display-lg" style="margin: 14px 0 0;">See what you'll get before you try.</h2>
+      <p class="type-body-lg" style="color: var(--ink-secondary); margin: 18px 0 0;">Every analysis highlights problem zones on your photo and turns them into prioritized, practical suggestions — plus a short checklist you can act on right away.</p>
+      <a href={APP_URL} class="btn-primary" style="margin-top: 26px;">Analyze my space <i data-lucide="arrow-right" style="width: 17px; height: 17px;"></i></a>
+    </div>
+    <div style="background: var(--brand-dark-900); border-radius: 18px; padding: 24px; box-shadow: rgba(0,55,112,0.10) 0 8px 24px;">
+      <div style="display: flex; align-items: center; gap: 8px; color: rgba(255,255,255,0.92);">
+        <i data-lucide="scan-search" style="width: 18px; height: 18px; color: var(--primary-soft);"></i>
+        <span class="type-body-md" style="font-weight: 500;">Summary</span>
+      </div>
+      <p class="type-body-md" style="color: rgba(255,255,255,0.72); margin: 8px 0 18px;">Your space is usable, but the main work area is crowded and cables are exposed.</p>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        {exampleCards.map((c) => (
+          <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 13px 15px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="width: 8px; height: 8px; border-radius: 50%; background: {c.color};"></span>
+              <span class="type-body-md" style="color: #fff; font-weight: 500;">{c.label}</span>
+              <span style="margin-left: auto; color: {c.color}; font-size: 10px; font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.06em;">{c.tag}</span>
+            </div>
+            <p class="type-caption" style="color: rgba(255,255,255,0.62); margin: 7px 0 0;">{c.text}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <!-- Final CTA -->
+  <div class="container" style="margin-bottom: 84px;">
+    <div style="position: relative; overflow: hidden; border-radius: 22px; background: var(--brand-dark-900); padding: 64px 48px; text-align: center;">
+      <div style="position: absolute; inset: 0; background-image: url('/assets/gradient-mesh.png'); background-size: cover; background-position: center; opacity: 0.28;"></div>
+      <div style="position: relative;">
+        <h2 class="type-display-xl" style="color: #fff; margin: 0; max-width: 18ch; margin-inline: auto;">Take a photo. Get a cleaner space.</h2>
+        <p class="type-body-lg" style="color: rgba(255,255,255,0.74); margin: 16px auto 0; max-width: 50ch;">Your personal organizer, powered by AI. No sign-up required.</p>
+        <a href={APP_URL} style="margin-top: 28px; border: none; cursor: pointer; background: #fff; color: var(--primary); font-family: var(--font-display); font-size: 16px; padding: 13px 28px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 8px; text-decoration: none;">Try organAIzer <i data-lucide="arrow-right" style="width: 17px; height: 17px;"></i></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style="border-top: 1px solid var(--hairline); background: #fff;">
+    <div class="container footer-container" style="padding-top: 28px; padding-bottom: 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+      <div style="display: flex; align-items: center; gap: 9px;">
+        <img src="/assets/logo-mark-indigo.png" alt="" style="height: 20px;">
+        <span class="type-body-md" style="color: var(--ink-mute);">organAIzer — MVP demo</span>
+      </div>
+      <span class="type-caption" style="color: var(--ink-mute); max-width: 500px;">Your photo is used only to generate organization suggestions. Avoid uploading sensitive personal information.</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Initialize Lucide icons
+  const w = window as any;
+  if (w.lucide) {
+    w.lucide.createIcons();
+  } else {
+    document.addEventListener("DOMContentLoaded", () => {
+      if (w.lucide) w.lucide.createIcons();
+    });
+  }
+</script>
+
+</body>
+</html>
