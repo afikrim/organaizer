@@ -10,6 +10,7 @@ import type { AppState } from '../types';
 import type { Goal, Analysis, FollowUpAnswer } from '@organaizer/types';
 import { GOALS, DEFAULT_IMAGE, PRIORITY_COLORS } from '../assets/mockData';
 import { analyzeImage, sendFollowUp } from '../lib/api';
+import { downscaleImage } from '../lib/image';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -163,8 +164,11 @@ export default function OrganaizerApp() {
     setCompletedTasks(new Set());
 
     try {
-      // Use real file if chosen, else fetch the default hero as a Blob
-      const imageFile = uploadedFile ?? (await fetchDefaultImageAsBlob());
+      // Use real file if chosen, else fetch the default hero as a Blob.
+      // Downscale before upload to stay under the serverless body limit; the
+      // small hero blob hits the fast path and passes through unchanged.
+      const rawFile = uploadedFile ?? (await fetchDefaultImageAsBlob());
+      const imageFile = await downscaleImage(rawFile);
       const result = await analyzeImage(imageFile, selectedGoal);
       setAnalysis(result);
       setActiveZoneId(result.zones[0]?.id ?? null);
